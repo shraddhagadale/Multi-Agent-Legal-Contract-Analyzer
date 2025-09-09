@@ -1,4 +1,4 @@
-# Multi-Agent Legal Contract Analyzer
+## Multi-Agent Legal Contract Analyzer
 
 The Multi-Agent Legal Contract Analyzer is an AI-powered system that analyzes Non-Disclosure Agreements (NDAs) to identify risky clauses, provide risk assessments, and suggest improvements.
 
