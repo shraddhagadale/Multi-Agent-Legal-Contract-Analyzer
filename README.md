@@ -87,7 +87,7 @@ The system will generate a detailed analysis including:
 
 ## Current Status
 
-This is the first draft of the LegalDoc AI system. Currently implemented:
+This is the first draft of the system. Currently implemented:
 - Clause Splitter Agent
 - Clause Classifier Agent
 - Risk Detector Agent
