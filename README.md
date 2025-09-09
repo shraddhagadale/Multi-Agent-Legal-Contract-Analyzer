@@ -42,7 +42,7 @@ LegalDoc/
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/yourusername/Multi-Agent-Legal-Contract-Analyzer.git
+git clone https://github.com/shraddhagadale/Multi-Agent-Legal-Contract-Analyzer
 cd Multi-Agent-Legal-Contract-Analyzer
 ```
 
