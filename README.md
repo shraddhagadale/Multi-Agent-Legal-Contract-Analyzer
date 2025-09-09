@@ -6,10 +6,10 @@ The Multi-Agent Legal Contract Analyzer is an AI-powered system that analyzes No
 
 The system uses a pipeline of specialized agents to process and analyze NDAs:
 
-1. **Clause Splitter Agent**: Breaks down the NDA document into logical clauses
-2. **Clause Classifier Agent**: Categorizes each clause (e.g., Confidentiality, Term, Obligations)
-3. **Risk Detector Agent**: Identifies potentially risky clauses and provides detailed risk assessments
-4. **Rewriter Agent** (Coming Soon): Suggests safer alternatives for high-risk clauses
+- Clause Splitter Agent: Breaks down the NDA document into logical clauses
+- Clause Classifier Agent: Categorizes each clause (e.g., Confidentiality, Term, Obligations)
+- Risk Detector Agent: Identifies potentially risky clauses and provides detailed risk assessments and recommendations for safer clause rewrites
+
 
 ## Features
 
