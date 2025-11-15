@@ -92,10 +92,6 @@ This is the first draft of the system. Currently implemented:
 - Clause Classifier Agent
 - Risk Detector Agent
 
-Coming soon:
-- Support for PDF and DOCX documents
-- Enhanced risk scoring and recommendations
-
 ## Dependencies
 
 - Python 3.8+
