@@ -1,98 +1,177 @@
+"""
+Risk Detector Agent
+
+This agent analyzes legal clauses to identify potential risks, red flags,
+and problematic language in NDA agreements.
+"""
+
 import json
-from crewai import Agent
-from typing import Dict, Any
-import os
+from typing import Dict, Any, List, Optional
+
 
 class RiskDetectorAgent:
+    """
+    Agent responsible for detecting risks in legal clauses.
+    
+    Uses the LLM to identify potential legal risks, unfair terms,
+    and problematic language with severity ratings and recommendations.
+    """
 
-    def __init__(self, llm, prompt_manager):
+    def __init__(self, llm_manager, prompt_manager):
         """
         Initialize the Risk Detector Agent.
         
         Args:
-            llm: Language model instance
-            prompt_manager: PromptManager instance for loading provider-specific prompts
+            llm_manager: LLMProviderManager instance for making LLM calls
+            prompt_manager: PromptManager instance for loading prompts
         """
-        self.llm = llm
+        self.llm = llm_manager
         self.prompt_manager = prompt_manager
-        self.agent = self._create_agent()
+        
+        # Agent configuration
+        self.role = "Legal Risk Assessment Expert"
+        self.goal = "Identify potential risks, red flags, and problematic language in NDA clauses"
 
-    def _create_agent(self):
-        return Agent(
-            role = "Legal Risk Assessment Expert",
-            goal = "Identify potential risks, red flags, and problematic language in NDA clauses",
-            backstory = """ You are a senior legal risk analyst with decades of experience in
-            contract negotiation and risk assessment. You have an exceptional ability to 
-            spot problematic language, unfair terms, and potential legal pitfalls in 
-            commercial agreements. Your expertise helps protect parties from unfavorable terms.""",
-            verbose = True,
-            allow_delegation = False,
-            llm = self.llm,
-            tools = [],
-            memory = False
-        )
-
-    def detect_risks(self,clause,classification = None):
+    def detect_risks(
+        self,
+        clause: Dict[str, Any],
+        classification: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Detect risks in a single clause.
+        
+        Args:
+            clause: Clause dictionary with 'clause_id' and 'clause_text'
+            classification: Optional classification dictionary for context
+        
+        Returns:
+            Risk assessment dictionary with identified risks and recommendations
+        """
         try:
-            prompt = self._load_prompt_template().format(
-                clause_text = clause['clause_text'],
-                clause_id = clause['clause_id'],
-                clause_category = classification.get('category','Unknown') if classification else 'Unknown'
+            # Load and format the prompt
+            prompt_template = self._load_prompt_template()
+            user_prompt = prompt_template.format(
+                clause_text=clause['clause_text'],
+                clause_id=clause['clause_id'],
+                clause_category=classification.get('category', 'Unknown') if classification else 'Unknown'
             )
-
-            # Create a task for the agent to execute
-            from crewai import Task
-            task = Task(
-                description=prompt,
-                expected_output="JSON risk assessment of the clause"
-            )
-            result = self.agent.execute_task(task)
-
-            risk_assessment = self._parse_response(result)
-
+            
+            # Build messages for the LLM
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        f"You are a {self.role}. Your goal is to {self.goal}. "
+                        "You are a senior legal risk analyst with decades of experience in "
+                        "contract negotiation and risk assessment. You have an exceptional ability to "
+                        "spot problematic language, unfair terms, and potential legal pitfalls in "
+                        "commercial agreements. Your expertise helps protect parties from unfavorable terms. "
+                        "Always respond with valid JSON."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ]
+            
+            # Call the LLM
+            response = self.llm.chat(messages)
+            
+            # Parse the response
+            risk_assessment = self._parse_response(response)
             risk_assessment['original_clause'] = clause
             risk_assessment['classification'] = classification
-
+            
             return risk_assessment
-        
+
         except Exception as e:
-            print(f"Error in risk detection: {str(e)}")
+            print(f"[Risk Detector] ❌ Error detecting risks: {str(e)}")
             return self._create_fallback_risk_assessment(clause)
 
-    def _load_prompt_template(self):
+    def detect_risks_multiple_clauses(
+        self,
+        clauses: List[Dict[str, Any]],
+        classifications: Optional[List[Dict[str, Any]]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Detect risks in multiple clauses.
+        
+        Args:
+            clauses: List of clause dictionaries
+            classifications: Optional list of classification dictionaries
+        
+        Returns:
+            List of risk assessment dictionaries
+        """
+        risk_assessments = []
+        
+        # If classifications not provided, use None for each
+        if classifications is None:
+            classifications = [None] * len(clauses)
+        
+        for i, (clause, classification) in enumerate(zip(clauses, classifications)):
+            clause_id = clause.get('clause_id', f'clause_{i+1}')
+            print(f"[Risk Detector] 🔍 Assessing risks for: {clause_id}")
+            
+            risk_assessment = self.detect_risks(clause, classification)
+            risk_assessments.append(risk_assessment)
+        
+        # Summary
+        high_risks = sum(1 for r in risk_assessments if r.get('risk_level') == 'HIGH')
+        medium_risks = sum(1 for r in risk_assessments if r.get('risk_level') == 'MEDIUM')
+        low_risks = sum(1 for r in risk_assessments if r.get('risk_level') == 'LOW')
+        
+        print(f"[Risk Detector] ✅ Completed risk assessment for {len(risk_assessments)} clauses")
+        print(f"[Risk Detector] 📊 Summary: {high_risks} HIGH, {medium_risks} MEDIUM, {low_risks} LOW")
+        
+        return risk_assessments
+
+    def _load_prompt_template(self) -> str:
         """Load the prompt template using PromptManager."""
         return self.prompt_manager.load_prompt("risk_detector_prompt")
 
-    def detect_risks_multiple_clauses(self, clauses, classifications):
-        risk_assessments = []
-        for clause, classification in zip(clauses, classifications):
-            risk_assessment = self.detect_risks(clause, classification)
-            risk_assessments.append(risk_assessment)
-        return risk_assessments
-
-    def _parse_response(self,response : str):
+    def _parse_response(self, response: str) -> Dict[str, Any]:
+        """
+        Parse the LLM response into structured risk assessment data.
+        
+        Args:
+            response: Raw LLM response text
+        
+        Returns:
+            Parsed risk assessment dictionary
+        """
         try:
             start_idx = response.find('{')
             end_idx = response.rfind('}') + 1
             
-            if start_idx != -1 and end_idx != -1:
+            if start_idx != -1 and end_idx > start_idx:
                 json_str = response[start_idx:end_idx]
                 risk_assessment = json.loads(json_str)
                 return risk_assessment
-            else:
-                print("No valid JSON object found in response")
-                return self._create_fallback_risk_assessment({})
+            
+            print("[Risk Detector] ⚠️ No valid JSON found in response")
+            return self._create_fallback_risk_assessment({})
             
         except json.JSONDecodeError as e:
-            print(f"Error parsing JSON response: {str(e)}")
-            print(f"Raw response: {response}")
+            print(f"[Risk Detector] ⚠️ JSON parsing error: {str(e)}")
+            print(f"[Risk Detector] Raw response: {response[:500]}...")
             return self._create_fallback_risk_assessment({})
         except Exception as e:
-            print(f"Error parsing response: {str(e)}")
-            return self._create_fallback_risk_assessment({}) 
+            print(f"[Risk Detector] ⚠️ Error parsing response: {str(e)}")
+            return self._create_fallback_risk_assessment({})
 
     def _create_fallback_risk_assessment(self, clause: Dict[str, Any]) -> Dict[str, Any]:
-        return{
+        """
+        Create a fallback risk assessment when parsing fails.
+        
+        Args:
+            clause: The original clause dictionary
+        
+        Returns:
+            Fallback risk assessment dictionary
+        """
+        return {
             "clause_id": clause.get('clause_id', 'unknown'),
             "risk_level": "UNKNOWN",
             "risk_score": 0.0,
@@ -110,47 +189,3 @@ class RiskDetectorAgent:
             "overall_assessment": "Risk assessment failed - manual review required",
             "original_clause": clause
         }
-
-    def validate_risk_assessment(self,risk_assessment):
-        required_keys = [
-            "clause_id", "risk_level", "risk_score", "identified_risks", 
-            "recommendations", "overall_assessment", "original_clause"
-
-        ]
-        for key in required_keys:
-            if key not in risk_assessment:
-                print(f"Missing required key: {key}")
-                return False
-        return True
-        
-    def detect_risks_multiple_clauses(self, clauses: list, classifications: list = None) -> list:
-        """
-        Detect risks in multiple clauses.
-        
-        Args:
-            clauses: List of clauses to analyze
-            classifications: Optional list of classifications for the clauses
-            
-        Returns:
-            List of risk assessments for each clause
-        """
-        risk_assessments = []
-        
-        # If classifications is not provided, use None for each clause
-        if classifications is None:
-            classifications = [None] * len(clauses)
-            
-        for clause, classification in zip(clauses, classifications):
-            risk_assessment = self.detect_risks(clause, classification)
-            risk_assessments.append(risk_assessment)
-            
-        return risk_assessments
-    
-    def get_high_risk_clauses(self, risk_assessments: list) -> list:
-        high_risk_clauses = []
-        for assessment in risk_assessments:
-            if assessment.get("risk_level") == "HIGH":
-                high_risk_clauses.append(assessment)
-        return high_risk_clauses
-
-    

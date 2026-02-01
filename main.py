@@ -1,102 +1,140 @@
+"""
+LegalDoc AI - NDA Analysis System
+
+Main orchestration module that coordinates the multi-agent system
+for analyzing legal documents (NDAs) to extract clauses, classify them,
+and detect potential risks.
+
+Usage:
+    python main.py <document_file>           # Analyze a document
+    python main.py <document_file> --no-save # Analyze without saving JSON files
+    python main.py --help                    # Show usage
+"""
+
 import os
-from dotenv import load_dotenv
-load_dotenv()
+import sys
+import json
+import argparse
 from typing import Dict, Any
-from langchain_openai import ChatOpenAI
-from agents import splitter_agent
+
+from dotenv import load_dotenv
+
+from utils.llm_provider_manager import LLMProviderManager
+from utils.prompt_manager import PromptManager
 from agents.splitter_agent import ClauseSplitterAgent
 from agents.classifier_agent import ClauseClassifierAgent
 from agents.risk_detector_agent import RiskDetectorAgent
 
+# Load environment variables
+load_dotenv()
+
+
 class LegalDocAI:
+    """
+    Main orchestrator for the Legal Document AI system.
+    
+    Coordinates three agents:
+    1. ClauseSplitterAgent - Splits documents into clauses
+    2. ClauseClassifierAgent - Classifies clauses by category
+    3. RiskDetectorAgent - Detects risks in clauses
+    
+    Uses LLMProviderManager for automatic OpenAI/Gemini fallback.
+    """
+    
     def __init__(self):
         """
         Initialize LegalDocAI with Auto-Fallback Support.
         
         Uses LLMProviderManager to:
-        1. Try starting OpenAI (GPT-4o-mini)
-        2. Test the connection
-        3. Fallback to Gemini if OpenAI fails
+        1. Configure OpenAI (primary) based on API key presence
+        2. Configure Gemini (fallback) based on API key presence
+        3. Fall back automatically at runtime if primary fails
         4. Load the correct prompts for the active provider
         """
-        print("="*60)
+        print("=" * 60)
         print("INITIALIZING LEGAL DOC AI SYSTEM")
-        print("="*60)
+        print("=" * 60)
         
-        # Initialize LLM with Auto-Fallback
         try:
-            from utils.llm_provider_manager import LLMProviderManager
-            
-            # This handles priority, validation, and fallback automatically
-            # Configuration is loaded internally from utils.load_env
+            # Initialize LLM manager (handles provider configuration)
             self.llm_manager = LLMProviderManager()
-            self.llm = self.llm_manager.get_llm()
+            
+            # Initialize Prompt Manager with the active provider
+            self.prompt_manager = PromptManager(self.llm_manager)
             
         except Exception as e:
             print(f"\n❌ FATAL ERROR During Initialization: {e}")
             raise e
 
-        # Initialize Prompt Manager
-        # It detects the provider from the validated LLM instance
-        from utils.prompt_manager import PromptManager
-        self.prompt_manager = PromptManager(self.llm)
-        
         print("-" * 60)
-        print(f"🚀 ACTIVE SYSTEM: {self.prompt_manager.get_provider().upper()}")
+        print(f"🚀 ACTIVE SYSTEM: {self.llm_manager.get_provider_name().upper()}")
+        print(f"📁 PROMPTS: {self.prompt_manager.get_provider()}")
         print("-" * 60)
         
-        # Initialize the agents with the active LLM and PromptManager
-        self.splitter_agent = ClauseSplitterAgent(self.llm, self.prompt_manager)
-        self.classifier_agent = ClauseClassifierAgent(self.llm, self.prompt_manager)
-        self.risk_detector_agent = RiskDetectorAgent(self.llm, self.prompt_manager)
+        # Initialize agents with the LLM manager and PromptManager
+        self.splitter_agent = ClauseSplitterAgent(self.llm_manager, self.prompt_manager)
+        self.classifier_agent = ClauseClassifierAgent(self.llm_manager, self.prompt_manager)
+        self.risk_detector_agent = RiskDetectorAgent(self.llm_manager, self.prompt_manager)
 
-        print("LegalDocAI initialized successfully\n")
+        print("\n✅ LegalDocAI initialized successfully\n")
 
+    def analyze_document(self, document_text: str, save_output: bool = True) -> Dict[str, Any]:
+        """
+        Analyze a legal document through the full pipeline.
+        
+        Args:
+            document_text: The full text of the legal document
+            save_output: Whether to save results to JSON files
+        
+        Returns:
+            Dictionary containing all analysis results
+        """
+        print("\n" + "=" * 60)
+        print("STARTING NDA ANALYSIS")
+        print("=" * 60)
 
-    def analyze_document(self, document_text: str, save_output=True):
-        print("Starting NDA Analysis")
-
-        # Step 1
-        print("Step 1: Splitting document into clauses...")
+        # Step 1: Split document into clauses
+        print("\n📄 Step 1: Splitting document into clauses...")
         clauses = self.splitter_agent.split_document(document_text)
-        print(f"Found {len(clauses)} clauses")
+        print(f"   Found {len(clauses)} clauses")
         
         if save_output:
-            import json
             with open("output_clauses.json", "w") as f:
                 json.dump(clauses, f, indent=2)
-            print("Clauses saved to output_clauses.json")
+            print("   💾 Saved to output_clauses.json")
 
-        # Step 2 
-        print("Step 2: Classifying clauses...")
+        # Step 2: Classify clauses
+        print("\n🏷️  Step 2: Classifying clauses...")
         classifications = self.classifier_agent.classify_multiple_clauses(clauses)
-        print(f"Classified {len(classifications)} clauses")
+        print(f"   Classified {len(classifications)} clauses")
         
         if save_output:
             with open("output_classifications.json", "w") as f:
                 json.dump(classifications, f, indent=2)
-            print("Classifications saved to output_classifications.json")
+            print("   💾 Saved to output_classifications.json")
 
-        # Step 3
-        print("Step 3: Assessing risks...")
-        risk_assessments = self.risk_detector_agent.detect_risks_multiple_clauses(clauses, classifications)
+        # Step 3: Assess risks
+        print("\n🔍 Step 3: Assessing risks...")
+        risk_assessments = self.risk_detector_agent.detect_risks_multiple_clauses(
+            clauses, classifications
+        )
         
         # Categorize risks by level
         high_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'HIGH']
         medium_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'MEDIUM']
         low_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'LOW']
 
-        print(f"Found {len(high_risk_clauses)} high risk clauses")
-        print(f"Found {len(medium_risk_clauses)} medium risk clauses")
-        print(f"Found {len(low_risk_clauses)} low risk clauses")
+        print(f"   🔴 High risk: {len(high_risk_clauses)}")
+        print(f"   🟡 Medium risk: {len(medium_risk_clauses)}")
+        print(f"   🟢 Low risk: {len(low_risk_clauses)}")
         
         if save_output:
             with open("output_risk_assessments.json", "w") as f:
                 json.dump(risk_assessments, f, indent=2)
-            print("Risk assessments saved to output_risk_assessments.json")
+            print("   💾 Saved to output_risk_assessments.json")
 
         # Step 4: Compile results
-        print("Step 4: Compiling results...")
+        print("\n📊 Step 4: Compiling results...")
         results = {
             "total_clauses": len(clauses),
             "clauses": clauses,
@@ -104,23 +142,31 @@ class LegalDocAI:
             "risk_assessments": risk_assessments,
             "high_risk_clauses": high_risk_clauses,
             "medium_risk_clauses": medium_risk_clauses,
-            "low_risk_clauses": low_risk_clauses
+            "low_risk_clauses": low_risk_clauses,
+            "provider_used": self.llm_manager.get_provider_name()
         }
         
         if save_output:
             with open("output_all_results.json", "w") as f:
                 json.dump(results, f, indent=2)
-            print("All results saved to output_all_results.json")
+            print("   💾 Saved to output_all_results.json")
         
-        print("Analysis complete!")
+        print("\n✅ Analysis complete!")
         return results
 
-    def print_summary(self, results):
-        print("\n" + "="*60)
+    def print_summary(self, results: Dict[str, Any]):
+        """
+        Print a formatted summary of the analysis results.
+        
+        Args:
+            results: Analysis results dictionary
+        """
+        print("\n" + "=" * 60)
         print("DOCUMENT ANALYSIS SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
-        print(f"Total clauses: {results['total_clauses']}")
+        print(f"\n📊 Total clauses analyzed: {results['total_clauses']}")
+        print(f"🤖 Provider used: {results.get('provider_used', 'unknown').upper()}")
         
         # Count risk levels
         risk_counts = {
@@ -136,91 +182,132 @@ class LegalDocAI:
             level = risk.get('risk_level', 'UNKNOWN')
             if level not in ["HIGH", "MEDIUM", "LOW"]:
                 risk_counts[level] = risk_counts.get(level, 0) + 1
+
+        print(f"\n📈 Risk Distribution:")
+        print(f"   🔴 High Risk: {risk_counts['HIGH']}")
+        print(f"   🟡 Medium Risk: {risk_counts['MEDIUM']}")
+        print(f"   🟢 Low Risk: {risk_counts['LOW']}")
+        print(f"   ⚪ No Risk: {risk_counts['NONE']}")
         
-            print(f"\nRisk Distribution:")
-            print(f"High Risk Clauses: {risk_counts['HIGH']}")
-            print(f"Medium Risk Clauses: {risk_counts['MEDIUM']}")
-            print(f"Low Risk Clauses: {risk_counts['LOW']}")
-            print(f"No Risk Clauses: {risk_counts['NONE']}")
-            
-            # Display high risk clauses
-            if risk_counts['HIGH'] > 0:
-                print("\n" + "="*80)
-                print("DETAILED HIGH RISK CLAUSES ANALYSIS")
-                print("="*80)
-            
+        # Display high risk clauses
+        if risk_counts['HIGH'] > 0:
+            print("\n" + "=" * 60)
+            print("⚠️  DETAILED HIGH RISK CLAUSES")
+            print("=" * 60)
+        
             for i, risk_assessment in enumerate(results.get('high_risk_clauses', [])):
                 clause_id = risk_assessment.get('clause_id')
                 original_clause = risk_assessment.get('original_clause', {})
                 
-                # 1. Clause Title
+                # Clause header
                 print(f"\n{i+1}. {original_clause.get('clause_title', 'Untitled')} (ID: {clause_id})")
+                print("-" * 40)
                 
-                # 2. Risk information
+                # Risk information
                 print(f"   Risk Score: {risk_assessment.get('risk_score', 'N/A')}")
-                print(f"   Overall Assessment: {risk_assessment.get('overall_assessment', 'No assessment provided')}")
+                print(f"   Assessment: {risk_assessment.get('overall_assessment', 'No assessment')}")
                 
-                # 3. Original Clause Text
+                # Original clause text (truncated)
                 clause_text = original_clause.get('clause_text', 'No text available')
-                print("\n   Original Clause Text:")
-                print(f"     {clause_text}")
+                if len(clause_text) > 200:
+                    clause_text = clause_text[:200] + "..."
+                print(f"\n   Original Text:\n   {clause_text}")
                 
-                # 4. Identified Risks
+                # Identified risks
                 risks = risk_assessment.get('identified_risks', [])
                 if risks:
                     print("\n   Identified Risks:")
                     for risk in risks:
-                        print(f"     - {risk.get('risk_type', 'Unknown')} (Severity: {risk.get('severity', 'Unknown')})")
+                        print(f"     • {risk.get('risk_type', 'Unknown')} ({risk.get('severity', 'Unknown')})")
                         print(f"       {risk.get('description', 'No description')}")
                 
-                # 5. Recommendations
+                # Recommendations
                 recommendations = risk_assessment.get('recommendations', [])
                 if recommendations:
                     print("\n   Recommendations:")
                     for rec in recommendations:
-                        print(f"     - {rec}")
-                else:
-                    print("\n   Recommendations: None provided")
-                    
-                print("-" * 80)
+                        print(f"     • {rec}")
+                
+                print("-" * 40)
         
-        # Important medium risk clauses that might need attention
+        # Medium risk summary
         if risk_counts['MEDIUM'] > 0:
-            print("\nMedium Risk Clauses to Review:")
-            for i, risk_assessment in enumerate(results.get('medium_risk_clauses', [])):
+            print("\n🟡 Medium Risk Clauses to Review:")
+            for risk_assessment in results.get('medium_risk_clauses', []):
                 original_clause = risk_assessment.get('original_clause', {})
-                print(f"  • {original_clause.get('clause_title', 'Untitled')} - {risk_assessment.get('overall_assessment', '')[:100]}...")
+                assessment = risk_assessment.get('overall_assessment', '')[:80]
+                print(f"   • {original_clause.get('clause_title', 'Untitled')}: {assessment}...")
         
-        print("\n" + "="*60)
-   
+        print("\n" + "=" * 60)
 
-# Test Function
-def test_with_sample_nda(save_output=True):
-    # Read the sample NDA document with risks
-    with open("sample_nda_with_risks.txt", "r") as f:
-        document_text = f.read()
+
+def parse_arguments() -> argparse.Namespace:
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="LegalDoc AI - NDA Analysis System",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    python main.py contract.txt              # Analyze a contract
+    python main.py nda.txt --no-save         # Analyze without saving JSON files
+    python main.py document.pdf              # Note: PDF support requires pypdf2
+        """
+    )
     
-    print(f"Document loaded, length: {len(document_text)} characters")
+    parser.add_argument(
+        "document",
+        type=str,
+        help="Path to the document file to analyze"
+    )
     
-    legal_ai = LegalDocAI()
-    results = legal_ai.analyze_document(document_text, save_output=save_output)
+    parser.add_argument(
+        "--no-save",
+        action="store_true",
+        help="Don't save output JSON files"
+    )
+    
+    return parser.parse_args()
 
-    legal_ai.print_summary(results)
 
-    return results
+def main():
+    """Main entry point for the LegalDoc AI CLI."""
+    print("=" * 60)
+    print("LegalDoc AI - NDA Analysis System")
+    print("=" * 60)
+    
+    # Parse arguments
+    args = parse_arguments()
+    
+    # Check if document exists
+    if not os.path.exists(args.document):
+        print(f"\n❌ Error: Document not found: {args.document}")
+        sys.exit(1)
+    
+    # Read the document
+    try:
+        with open(args.document, "r", encoding="utf-8") as f:
+            document_text = f.read()
+    except UnicodeDecodeError:
+        print(f"\n❌ Error: Unable to read file. Make sure it's a text file.")
+        print("   For PDF files, convert to text first or use a PDF library.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Error reading file: {e}")
+        sys.exit(1)
+    
+    print(f"\n📄 Document loaded: {args.document}")
+    print(f"   Size: {len(document_text)} characters")
+    
+    # Initialize and run analysis
+    try:
+        legal_ai = LegalDocAI()
+        save_output = not args.no_save
+        results = legal_ai.analyze_document(document_text, save_output=save_output)
+        legal_ai.print_summary(results)
+    except Exception as e:
+        print(f"\n❌ Error during analysis: {e}")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    print("LegalDoc AI - NDA Analysis System")
-    print("-----------------------------------------------------------")
-    print("Running full analysis with sample NDA document...")
-    test_with_sample_nda()
-
-
-
-
-
-
-
-
-
-
+    main()

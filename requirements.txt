@@ -1,19 +1,19 @@
-# Core AI and orchestration
-openai>=1.0.0          # OpenAI API client for GPT models
-crewai>=0.28.0          # Multi-agent orchestration framework
-langchain>=0.1.0        # Framework for building LLM applications
-langchain-openai>=0.0.5 # LangChain integration with OpenAI
-langchain-google-genai>=0.0.5  # LangChain integration with Google Gemini (optional)
+# Core AI - Native SDKs
+openai>=1.0.0               # OpenAI native Python SDK
+google-genai>=1.0.0         # Google Gemini native Python SDK (new unified SDK)
 
 # Environment and configuration
-python-dotenv>=1.0.0    # Load environment variables from .env files
+python-dotenv>=1.0.0        # Load environment variables from .env files
 
 # Document processing
-pypdf2>=3.0.0           # Extract text from PDF files
-python-docx>=0.8.11     # Extract text from Word documents
+pypdf2>=3.0.0               # Extract text from PDF files
+python-docx>=0.8.11         # Extract text from Word documents
 
 # Web interface
-streamlit>=1.28.0       # Create web applications easily
+streamlit>=1.28.0           # Create web applications easily
 
 # Data handling
-pydantic>=2.0.0         # Data validation and settings management
+pydantic>=2.0.0             # Data validation and settings management
+
+# Utilities
+tenacity>=8.0.0             # Retry library for rate limiting and resilience
