@@ -6,8 +6,16 @@ import os
 
 class ClauseClassifierAgent:
 
-    def __init__(self,llm):
+    def __init__(self, llm, prompt_manager):
+        """
+        Initialize the Clause Classifier Agent.
+        
+        Args:
+            llm: Language model instance
+            prompt_manager: PromptManager instance for loading provider-specific prompts
+        """
         self.llm = llm
+        self.prompt_manager = prompt_manager
         self.agent = self._create_agent()
     
     def _create_agent(self) -> Agent:
@@ -57,9 +65,8 @@ class ClauseClassifierAgent:
         return classifications
 
     def _load_prompt_template(self):
-        prompt_path = os.path.join("prompts","classifier_prompt.txt")
-        with open(prompt_path,'r') as f:
-            return f.read()
+        """Load the prompt template using PromptManager."""
+        return self.prompt_manager.load_prompt("classifier_prompt")
     
     def _parse_response(self, response: str) -> Dict[str, Any]:
         """

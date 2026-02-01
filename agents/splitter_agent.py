@@ -5,8 +5,16 @@ from typing import List, Dict, Any
 
 class ClauseSplitterAgent:
 
-    def __init__(self,llm):
+    def __init__(self, llm, prompt_manager):
+        """
+        Initialize the Clause Splitter Agent.
+        
+        Args:
+            llm: Language model instance
+            prompt_manager: PromptManager instance for loading provider-specific prompts
+        """
         self.llm = llm
+        self.prompt_manager = prompt_manager
         self.agent = self._create_agent()
 
     def _create_agent(self) -> Agent:
@@ -22,7 +30,7 @@ class ClauseSplitterAgent:
             memory=False
         )
 
-    def split_document(self, document_text : str) -> List[Dict[str,Any]]:
+    def split_document(self, document_text: str) -> List[Dict[str, Any]]:
         try:
             prompt = self._load_prompt_template().format(document_text=document_text)
             
@@ -43,9 +51,8 @@ class ClauseSplitterAgent:
             return []
 
     def _load_prompt_template(self) -> str:
-        prompt_path = os.path.join("prompts", "splitter_prompt.txt")
-        with open(prompt_path,'r') as f:
-            return f.read()
+        """Load the prompt template using PromptManager."""
+        return self.prompt_manager.load_prompt("splitter_prompt")
 
     def _parse_response(self, response: str):
         try: 

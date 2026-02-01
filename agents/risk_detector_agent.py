@@ -5,8 +5,16 @@ import os
 
 class RiskDetectorAgent:
 
-    def __init__(self,llm):
+    def __init__(self, llm, prompt_manager):
+        """
+        Initialize the Risk Detector Agent.
+        
+        Args:
+            llm: Language model instance
+            prompt_manager: PromptManager instance for loading provider-specific prompts
+        """
         self.llm = llm
+        self.prompt_manager = prompt_manager
         self.agent = self._create_agent()
 
     def _create_agent(self):
@@ -52,9 +60,8 @@ class RiskDetectorAgent:
             return self._create_fallback_risk_assessment(clause)
 
     def _load_prompt_template(self):
-        prompt_path = os.path.join("prompts","risk_detector_prompt.txt")
-        with open(prompt_path,'r') as f:
-            return f.read()
+        """Load the prompt template using PromptManager."""
+        return self.prompt_manager.load_prompt("risk_detector_prompt")
 
     def detect_risks_multiple_clauses(self, clauses, classifications):
         risk_assessments = []

@@ -3,6 +3,7 @@ openai>=1.0.0          # OpenAI API client for GPT models
 crewai>=0.28.0          # Multi-agent orchestration framework
 langchain>=0.1.0        # Framework for building LLM applications
 langchain-openai>=0.0.5 # LangChain integration with OpenAI
+langchain-google-genai>=0.0.5  # LangChain integration with Google Gemini (optional)
 
 # Environment and configuration
 python-dotenv>=1.0.0    # Load environment variables from .env files

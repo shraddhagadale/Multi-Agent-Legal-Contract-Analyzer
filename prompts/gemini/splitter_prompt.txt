@@ -14,31 +14,33 @@ GUIDELINES:
 7. Do not create separate clauses for paragraphs within the same section
 
 OUTPUT FORMAT:
-Return a JSON array where each element represents a clause with the following structure:
-{{
-  "clause_id": "unique identifier (e.g., 'clause_1', 'clause_2')",
-  "clause_number": "original clause number if present",
-  "clause_title": "brief descriptive title",
-  "clause_text": "full text of the clause",
-  "clause_type": "preliminary classification (e.g., 'definitions', 'confidentiality', 'term', 'obligations', 'exceptions', 'miscellaneous')"
-}}
+Return a valid JSON array where each element represents a clause with the following structure:
+
+Schema for each clause object:
+{
+  "clause_id": "string - unique identifier (e.g., 'clause_1', 'clause_2')",
+  "clause_number": "string - original clause number if present, or empty string",
+  "clause_title": "string - brief descriptive title",
+  "clause_text": "string - full text of the clause",
+  "clause_type": "string - preliminary classification (must be one of: 'definitions', 'confidentiality', 'term', 'obligations', 'exceptions', 'miscellaneous')"
+}
 
 EXAMPLE OUTPUT:
 [
-  {{
+  {
     "clause_id": "clause_1",
     "clause_number": "1",
     "clause_title": "Definitions",
     "clause_text": "For purposes of this Agreement, 'Confidential Information' means...",
     "clause_type": "definitions"
-  }},
-  {{
+  },
+  {
     "clause_id": "clause_2", 
     "clause_number": "2",
     "clause_title": "Confidentiality Obligations",
     "clause_text": "The Receiving Party agrees to maintain the confidentiality...",
     "clause_type": "confidentiality"
-  }}
+  }
 ]
 
 IMPORTANT:
