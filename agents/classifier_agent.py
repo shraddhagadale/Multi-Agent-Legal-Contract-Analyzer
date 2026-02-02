@@ -5,8 +5,9 @@ This agent classifies legal clauses into specific categories based on
 their content and purpose.
 """
 
-import json
 from typing import Dict, Any, List
+
+from utils.schemas import ClassificationResult
 
 
 class ClauseClassifierAgent:
@@ -58,8 +59,7 @@ class ClauseClassifierAgent:
                         f"You are a {self.role}. Your goal is to {self.goal}. "
                         "You are a senior legal expert with extensive experience in contract law "
                         "and legal document analysis. You have deep knowledge of NDA structures and can "
-                        "quickly identify the purpose and category of any legal clause. "
-                        "Always respond with valid JSON."
+                        "quickly identify the purpose and category of any legal clause."
                     )
                 },
                 {
@@ -68,14 +68,17 @@ class ClauseClassifierAgent:
                 }
             ]
             
-            # Call the LLM
-            response = self.llm.chat(messages)
+            # Call the LLM with structured output
+            classification = self.llm.structured_chat(
+                messages=messages,
+                response_model=ClassificationResult
+            )
             
-            # Parse the response
-            classification = self._parse_response(response)
-            classification['original_clause'] = clause
+            # Convert to dictionary and add original clause
+            result = classification.model_dump()
+            result['original_clause'] = clause
             
-            return classification
+            return result
 
         except Exception as e:
             print(f"[Classifier Agent] ❌ Error classifying clause: {str(e)}")
@@ -106,36 +109,6 @@ class ClauseClassifierAgent:
     def _load_prompt_template(self) -> str:
         """Load the prompt template using PromptManager."""
         return self.prompt_manager.load_prompt("classifier_prompt")
-
-    def _parse_response(self, response: str) -> Dict[str, Any]:
-        """
-        Parse the LLM response into structured classification data.
-        
-        Args:
-            response: Raw LLM response text
-        
-        Returns:
-            Parsed classification dictionary
-        """
-        try:
-            # Look for JSON in the response
-            start_idx = response.find('{')
-            end_idx = response.rfind('}') + 1
-            
-            if start_idx != -1 and end_idx > start_idx:
-                json_str = response[start_idx:end_idx]
-                classification = json.loads(json_str)
-                return classification
-            
-            print("[Classifier Agent] ⚠️ No valid JSON found in response")
-            return self._create_fallback_classification({})
-                
-        except json.JSONDecodeError as e:
-            print(f"[Classifier Agent] ⚠️ JSON parsing error: {str(e)}")
-            return self._create_fallback_classification({})
-        except Exception as e:
-            print(f"[Classifier Agent] ⚠️ Error parsing response: {str(e)}")
-            return self._create_fallback_classification({})
 
     def _create_fallback_classification(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """

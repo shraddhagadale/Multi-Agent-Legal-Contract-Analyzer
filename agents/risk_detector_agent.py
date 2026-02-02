@@ -5,8 +5,9 @@ This agent analyzes legal clauses to identify potential risks, red flags,
 and problematic language in NDA agreements.
 """
 
-import json
 from typing import Dict, Any, List, Optional
+
+from utils.schemas import RiskAssessmentResult
 
 
 class RiskDetectorAgent:
@@ -65,8 +66,7 @@ class RiskDetectorAgent:
                         "You are a senior legal risk analyst with decades of experience in "
                         "contract negotiation and risk assessment. You have an exceptional ability to "
                         "spot problematic language, unfair terms, and potential legal pitfalls in "
-                        "commercial agreements. Your expertise helps protect parties from unfavorable terms. "
-                        "Always respond with valid JSON."
+                        "commercial agreements. Your expertise helps protect parties from unfavorable terms."
                     )
                 },
                 {
@@ -75,15 +75,18 @@ class RiskDetectorAgent:
                 }
             ]
             
-            # Call the LLM
-            response = self.llm.chat(messages)
+            # Call the LLM with structured output
+            risk_assessment = self.llm.structured_chat(
+                messages=messages,
+                response_model=RiskAssessmentResult
+            )
             
-            # Parse the response
-            risk_assessment = self._parse_response(response)
-            risk_assessment['original_clause'] = clause
-            risk_assessment['classification'] = classification
+            # Convert to dictionary and add context
+            result = risk_assessment.model_dump()
+            result['original_clause'] = clause
+            result['classification'] = classification
             
-            return risk_assessment
+            return result
 
         except Exception as e:
             print(f"[Risk Detector] ❌ Error detecting risks: {str(e)}")
@@ -130,36 +133,6 @@ class RiskDetectorAgent:
     def _load_prompt_template(self) -> str:
         """Load the prompt template using PromptManager."""
         return self.prompt_manager.load_prompt("risk_detector_prompt")
-
-    def _parse_response(self, response: str) -> Dict[str, Any]:
-        """
-        Parse the LLM response into structured risk assessment data.
-        
-        Args:
-            response: Raw LLM response text
-        
-        Returns:
-            Parsed risk assessment dictionary
-        """
-        try:
-            start_idx = response.find('{')
-            end_idx = response.rfind('}') + 1
-            
-            if start_idx != -1 and end_idx > start_idx:
-                json_str = response[start_idx:end_idx]
-                risk_assessment = json.loads(json_str)
-                return risk_assessment
-            
-            print("[Risk Detector] ⚠️ No valid JSON found in response")
-            return self._create_fallback_risk_assessment({})
-            
-        except json.JSONDecodeError as e:
-            print(f"[Risk Detector] ⚠️ JSON parsing error: {str(e)}")
-            print(f"[Risk Detector] Raw response: {response[:500]}...")
-            return self._create_fallback_risk_assessment({})
-        except Exception as e:
-            print(f"[Risk Detector] ⚠️ Error parsing response: {str(e)}")
-            return self._create_fallback_risk_assessment({})
 
     def _create_fallback_risk_assessment(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """

@@ -1,5 +1,5 @@
 """
-LLM Provider Manager with Runtime Fallback and Rate Limiting
+LLM Provider Manager with Runtime Fallback, Rate Limiting, and Structured Outputs
 
 This module manages LLM provider initialization with automatic runtime fallback.
 Primary: OpenAI (gpt-4o-mini)
@@ -9,14 +9,17 @@ Features:
 - Automatic fallback on API errors (rate limits, timeouts, etc.)
 - Built-in rate limiting with exponential backoff
 - Unified interface for both providers
+- Structured outputs via Instructor + Pydantic for type-safe responses
 """
 
 import logging
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Type, TypeVar
 
 import openai
+import instructor
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -30,6 +33,9 @@ from .load_env import get_config
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Generic type for Pydantic response models
+T = TypeVar("T", bound=BaseModel)
 
 
 class LLMProviderError(Exception):
@@ -190,6 +196,105 @@ class LLMProviderManager:
         # All providers failed
         raise AllProvidersFailedError(
             f"All LLM providers failed:\n" + "\n".join(errors)
+        )
+    
+    def structured_chat(
+        self,
+        messages: List[Dict[str, str]],
+        response_model: Type[T],
+        temperature: float = 0.1,
+        max_retries: int = 2,
+    ) -> T:
+        """
+        Send a chat request with structured output using Instructor.
+        
+        This method uses Pydantic models to guarantee the response matches
+        the expected schema. Instructor handles retries for validation errors.
+        
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+            response_model: Pydantic model class defining expected response structure
+            temperature: Sampling temperature (0-1)
+            max_retries: Number of retries for validation failures
+        
+        Returns:
+            T: Validated Pydantic model instance
+        
+        Raises:
+            AllProvidersFailedError: If all providers fail
+        """
+        errors = []
+        
+        # Try OpenAI first if available
+        if self._providers_available["openai"]:
+            try:
+                return self._call_openai_structured(
+                    messages, response_model, temperature, max_retries
+                )
+            except Exception as e:
+                error_msg = f"OpenAI structured call failed: {str(e)}"
+                errors.append(error_msg)
+                self._log_error("OpenAI", str(e))
+                if self._providers_available["gemini"]:
+                    print("[LLM Manager] 🔄 Falling back to Gemini for structured output...")
+        
+        # Fallback to Gemini
+        if self._providers_available["gemini"]:
+            try:
+                return self._call_gemini_structured(
+                    messages, response_model, temperature, max_retries
+                )
+            except Exception as e:
+                error_msg = f"Gemini structured call failed: {str(e)}"
+                errors.append(error_msg)
+                self._log_error("Gemini", str(e))
+        
+        # All providers failed
+        raise AllProvidersFailedError(
+            f"All LLM providers failed for structured output:\n" + "\n".join(errors)
+        )
+    
+    def _call_openai_structured(
+        self,
+        messages: List[Dict[str, str]],
+        response_model: Type[T],
+        temperature: float,
+        max_retries: int,
+    ) -> T:
+        """Call OpenAI with Instructor for structured output."""
+        # Patch client with Instructor
+        client = instructor.from_openai(self._openai_client)
+        
+        return client.chat.completions.create(
+            model=self.openai_model,
+            messages=messages,
+            response_model=response_model,
+            temperature=temperature,
+            max_retries=max_retries,
+        )
+    
+    def _call_gemini_structured(
+        self,
+        messages: List[Dict[str, str]],
+        response_model: Type[T],
+        temperature: float,
+        max_retries: int,
+    ) -> T:
+        """Call Gemini with Instructor for structured output."""
+        # Patch client with Instructor
+        client = instructor.from_gemini(
+            client=self._gemini_client,
+            mode=instructor.Mode.GEMINI_JSON,
+        )
+        
+        # Convert messages to Gemini format
+        contents = self._convert_messages_to_gemini(messages)
+        
+        return client.chat.completions.create(
+            model=self.google_model,
+            messages=[{"role": "user", "content": contents}],
+            response_model=response_model,
+            max_retries=max_retries,
         )
     
     @retry(

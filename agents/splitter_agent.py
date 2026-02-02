@@ -5,8 +5,9 @@ This agent analyzes legal documents (particularly NDAs) and splits them
 into logical, meaningful clauses for further analysis.
 """
 
-import json
 from typing import List, Dict, Any
+
+from utils.schemas import SplitterResponse, Clause
 
 
 class ClauseSplitterAgent:
@@ -62,7 +63,7 @@ class ClauseSplitterAgent:
                         f"You are a {self.role}. Your goal is to {self.goal}. "
                         "You have years of experience in contract law and document analysis. "
                         "You specialize in understanding the structure and components of legal agreements, "
-                        "particularly Non-Disclosure Agreements. Always respond with valid JSON."
+                        "particularly Non-Disclosure Agreements."
                     )
                 },
                 {
@@ -71,12 +72,15 @@ class ClauseSplitterAgent:
                 }
             ]
             
-            # Call the LLM
+            # Call the LLM with structured output
             print(f"[Splitter Agent] 📄 Analyzing document ({len(document_text)} characters)...")
-            response = self.llm.chat(messages)
+            response = self.llm.structured_chat(
+                messages=messages,
+                response_model=SplitterResponse
+            )
             
-            # Parse the response
-            clauses = self._parse_response(response)
+            # Convert Pydantic models to dictionaries for downstream compatibility
+            clauses = [clause.model_dump() for clause in response.clauses]
             print(f"[Splitter Agent] ✅ Extracted {len(clauses)} clauses")
             
             return clauses
@@ -88,44 +92,3 @@ class ClauseSplitterAgent:
     def _load_prompt_template(self) -> str:
         """Load the prompt template using PromptManager."""
         return self.prompt_manager.load_prompt("splitter_prompt")
-
-    def _parse_response(self, response: str) -> List[Dict[str, Any]]:
-        """
-        Parse the LLM response into structured clause data.
-        
-        Args:
-            response: Raw LLM response text
-        
-        Returns:
-            List of parsed clause dictionaries
-        """
-        try:
-            # Try to find JSON array in the response
-            start_idx = response.find('[')
-            end_idx = response.rfind(']') + 1
-
-            if start_idx != -1 and end_idx > start_idx:
-                json_str = response[start_idx:end_idx]
-                clauses = json.loads(json_str)
-                return clauses
-            
-            # Try to find JSON object with clauses array
-            start_idx = response.find('{')
-            end_idx = response.rfind('}') + 1
-            
-            if start_idx != -1 and end_idx > start_idx:
-                json_str = response[start_idx:end_idx]
-                result = json.loads(json_str)
-                
-                if 'clauses' in result and isinstance(result['clauses'], list):
-                    return result['clauses']
-            
-            print("[Splitter Agent] ⚠️ No valid JSON found in response")
-            return []
-        
-        except json.JSONDecodeError as e:
-            print(f"[Splitter Agent] ⚠️ JSON parsing error: {str(e)}")
-            return []
-        except Exception as e:
-            print(f"[Splitter Agent] ⚠️ Error parsing response: {str(e)}")
-            return []

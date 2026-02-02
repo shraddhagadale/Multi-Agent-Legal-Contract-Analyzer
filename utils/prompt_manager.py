@@ -31,20 +31,15 @@ class PromptManager:
     # Default provider if detection fails
     DEFAULT_PROVIDER = "openai"
     
-    def __init__(self, llm_manager_or_provider):
+    def __init__(self, llm_manager):
         """
         Initialize the PromptManager.
         
         Args:
-            llm_manager_or_provider: Either an LLMProviderManager instance
-                                     or a string provider name ('openai', 'gemini')
+            llm_manager: An LLMProviderManager instance
         """
-        # Determine the provider
-        if isinstance(llm_manager_or_provider, str):
-            self.provider = llm_manager_or_provider.lower()
-        else:
-            # Assume it's an LLMProviderManager or similar with get_provider_name()
-            self.provider = detect_provider_from_llm(llm_manager_or_provider)
+        # Determine the provider from the LLM manager
+        self.provider = detect_provider_from_llm(llm_manager)
         
         # Validate provider
         if self.provider not in self.PROVIDER_DIRS:
