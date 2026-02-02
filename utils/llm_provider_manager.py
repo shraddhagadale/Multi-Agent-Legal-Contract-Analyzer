@@ -102,18 +102,11 @@ class LLMProviderManager:
     
     def _initialize_providers(self):
         """Initialize available providers based on API key presence."""
-        print("\n" + "=" * 60)
-        print("INITIALIZING LLM PROVIDERS")
-        print("=" * 60)
-        
         # Initialize OpenAI if key exists
         if self.openai_key:
             self._openai_client = openai.OpenAI(api_key=self.openai_key)
             self._providers_available["openai"] = True
             self.active_provider = "openai"
-            print(f"[LLM Manager] ✅ OpenAI configured ({self.openai_model})")
-        else:
-            print("[LLM Manager] ⚠️ OpenAI: No API key found")
         
         # Initialize Gemini if key exists
         if self.google_key:
@@ -121,9 +114,6 @@ class LLMProviderManager:
             self._providers_available["gemini"] = True
             if not self.active_provider:
                 self.active_provider = "gemini"
-            print(f"[LLM Manager] ✅ Gemini configured ({self.google_model})")
-        else:
-            print("[LLM Manager] ⚠️ Gemini: No API key found")
         
         # Check if at least one provider is available
         if not any(self._providers_available.values()):
@@ -133,11 +123,6 @@ class LLMProviderManager:
                 "- OPENAI_API_KEY\n"
                 "- GEMINI_API_KEY (or GOOGLE_API_KEY)"
             )
-        
-        print(f"\n[LLM Manager] 🚀 Primary provider: {self.active_provider.upper()}")
-        available = [p for p, v in self._providers_available.items() if v]
-        print(f"[LLM Manager] 📋 Available providers: {', '.join(available)}")
-        print("-" * 60)
     
     def _log_error(self, provider: str, error_msg: str):
         """Log provider-specific error messages."""

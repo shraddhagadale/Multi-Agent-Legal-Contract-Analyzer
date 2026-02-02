@@ -19,3 +19,6 @@ instructor>=1.0.0           # Structured outputs from LLMs via Pydantic
 
 # Utilities
 tenacity>=8.0.0             # Retry library for rate limiting and resilience
+
+# Report generation
+reportlab>=4.0.0            # PDF report generation

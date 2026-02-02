@@ -40,8 +40,6 @@ class PromptManager:
         self._provider = None
         if llm_manager and hasattr(llm_manager, 'get_provider_name'):
             self._provider = llm_manager.get_provider_name()
-        
-        print(f"[PromptManager] 📁 Using prompts from: {self.base_path}")
     
     def load_prompt(self, prompt_name: str) -> str:
         """
