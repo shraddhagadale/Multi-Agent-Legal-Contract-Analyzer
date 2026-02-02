@@ -3,12 +3,12 @@ Utilities package for LegalDoc AI
 
 This package provides:
 - LLMProviderManager: Unified LLM interface with OpenAI/Gemini fallback
-- PromptManager: Provider-specific prompt loading
+- PromptManager: Unified prompt loading (provider-agnostic)
 - Schemas: Pydantic models for structured LLM outputs
 - Configuration utilities
 """
 
-from .prompt_manager import PromptManager, detect_provider_from_llm
+from .prompt_manager import PromptManager
 from .llm_provider_manager import LLMProviderManager, LLMProviderError, RateLimitError, APIError
 from .load_env import get_config
 from .schemas import (
@@ -21,7 +21,6 @@ from .schemas import (
 
 __all__ = [
     'PromptManager',
-    'detect_provider_from_llm',
     'LLMProviderManager',
     'LLMProviderError',
     'RateLimitError',
