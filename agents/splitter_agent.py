@@ -73,7 +73,6 @@ class ClauseSplitterAgent:
             ]
             
             # Call the LLM with structured output
-            print(f"[Splitter Agent] 📄 Analyzing document ({len(document_text)} characters)...")
             response = self.llm.structured_chat(
                 messages=messages,
                 response_model=SplitterResponse
@@ -81,13 +80,11 @@ class ClauseSplitterAgent:
             
             # Convert Pydantic models to dictionaries for downstream compatibility
             clauses = [clause.model_dump() for clause in response.clauses]
-            print(f"[Splitter Agent] ✅ Extracted {len(clauses)} clauses")
             
             return clauses
         
         except Exception as e:
-            print(f"[Splitter Agent] ❌ Error in clause splitting: {str(e)}")
-            return []
+            raise Exception(f"Clause splitting failed: {str(e)}")
 
     def _load_prompt_template(self) -> str:
         """Load the prompt template using PromptManager."""

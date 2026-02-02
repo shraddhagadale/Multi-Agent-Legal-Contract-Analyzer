@@ -96,14 +96,10 @@ class ClauseClassifierAgent:
         """
         classifications = []
         
-        for i, clause in enumerate(clauses):
-            clause_id = clause.get('clause_id', f'clause_{i+1}')
-            print(f"[Classifier Agent] 🏷️  Classifying clause: {clause_id}")
-            
+        for clause in clauses:
             classification = self.classify_clause(clause)
             classifications.append(classification)
         
-        print(f"[Classifier Agent] ✅ Classified {len(classifications)} clauses")
         return classifications
 
     def _load_prompt_template(self) -> str:

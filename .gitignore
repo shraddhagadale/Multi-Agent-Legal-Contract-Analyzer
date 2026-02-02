@@ -40,3 +40,4 @@ clauses_output.json
 
 # macOS
 .DS_Store
+nda_analysis_report.json

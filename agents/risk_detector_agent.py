@@ -113,20 +113,9 @@ class RiskDetectorAgent:
         if classifications is None:
             classifications = [None] * len(clauses)
         
-        for i, (clause, classification) in enumerate(zip(clauses, classifications)):
-            clause_id = clause.get('clause_id', f'clause_{i+1}')
-            print(f"[Risk Detector] 🔍 Assessing risks for: {clause_id}")
-            
+        for clause, classification in zip(clauses, classifications):
             risk_assessment = self.detect_risks(clause, classification)
             risk_assessments.append(risk_assessment)
-        
-        # Summary
-        high_risks = sum(1 for r in risk_assessments if r.get('risk_level') == 'HIGH')
-        medium_risks = sum(1 for r in risk_assessments if r.get('risk_level') == 'MEDIUM')
-        low_risks = sum(1 for r in risk_assessments if r.get('risk_level') == 'LOW')
-        
-        print(f"[Risk Detector] ✅ Completed risk assessment for {len(risk_assessments)} clauses")
-        print(f"[Risk Detector] 📊 Summary: {high_risks} HIGH, {medium_risks} MEDIUM, {low_risks} LOW")
         
         return risk_assessments
 

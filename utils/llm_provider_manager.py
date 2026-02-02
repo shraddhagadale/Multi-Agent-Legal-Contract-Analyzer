@@ -34,6 +34,10 @@ from .load_env import get_config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Suppress verbose HTTP request logs from OpenAI/httpx
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 # Generic type for Pydantic response models
 T = TypeVar("T", bound=BaseModel)
 

@@ -84,57 +84,39 @@ class LegalDocAI:
         
         Args:
             document_text: The full text of the legal document
-            save_output: Whether to save results to JSON files
+            save_output: Whether to save results to JSON file
         
         Returns:
             Dictionary containing all analysis results
         """
         print("\n" + "=" * 60)
-        print("STARTING NDA ANALYSIS")
+        print("ANALYZING DOCUMENT")
         print("=" * 60)
 
         # Step 1: Split document into clauses
-        print("\n📄 Step 1: Splitting document into clauses...")
+        print("📄 Step 1: Splitting document into clauses...", end=" ", flush=True)
         clauses = self.splitter_agent.split_document(document_text)
-        print(f"   Found {len(clauses)} clauses")
-        
-        if save_output:
-            with open("output_clauses.json", "w") as f:
-                json.dump(clauses, f, indent=2)
-            print("   💾 Saved to output_clauses.json")
+        print(f"✅ Found {len(clauses)} clauses")
 
         # Step 2: Classify clauses
-        print("\n🏷️  Step 2: Classifying clauses...")
+        print(f"🏷️  Step 2: Classifying {len(clauses)} clauses...", end=" ", flush=True)
         classifications = self.classifier_agent.classify_multiple_clauses(clauses)
-        print(f"   Classified {len(classifications)} clauses")
-        
-        if save_output:
-            with open("output_classifications.json", "w") as f:
-                json.dump(classifications, f, indent=2)
-            print("   💾 Saved to output_classifications.json")
+        print("✅ Done")
 
         # Step 3: Assess risks
-        print("\n🔍 Step 3: Assessing risks...")
+        print(f"🔍 Step 3: Assessing risks for {len(clauses)} clauses...", end=" ", flush=True)
         risk_assessments = self.risk_detector_agent.detect_risks_multiple_clauses(
             clauses, classifications
         )
+        print("✅ Done")
         
         # Categorize risks by level
         high_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'HIGH']
         medium_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'MEDIUM']
         low_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'LOW']
 
-        print(f"   🔴 High risk: {len(high_risk_clauses)}")
-        print(f"   🟡 Medium risk: {len(medium_risk_clauses)}")
-        print(f"   🟢 Low risk: {len(low_risk_clauses)}")
-        
-        if save_output:
-            with open("output_risk_assessments.json", "w") as f:
-                json.dump(risk_assessments, f, indent=2)
-            print("   💾 Saved to output_risk_assessments.json")
-
         # Step 4: Compile results
-        print("\n📊 Step 4: Compiling results...")
+        print("📊 Step 4: Compiling results...", end=" ", flush=True)
         results = {
             "total_clauses": len(clauses),
             "clauses": clauses,
@@ -145,13 +127,15 @@ class LegalDocAI:
             "low_risk_clauses": low_risk_clauses,
             "provider_used": self.llm_manager.get_provider_name()
         }
+        print("✅ Done")
         
+        # Save only the final analysis file
         if save_output:
-            with open("output_all_results.json", "w") as f:
+            output_file = "nda_analysis_report.json"
+            with open(output_file, "w") as f:
                 json.dump(results, f, indent=2)
-            print("   💾 Saved to output_all_results.json")
+            print(f"\n💾 Report saved: {output_file}")
         
-        print("\n✅ Analysis complete!")
         return results
 
     def print_summary(self, results: Dict[str, Any]):
