@@ -28,6 +28,7 @@ wheels/
 .vscode/
 *.swp
 *.swo
+.DS_Store
 
 
 # Jupyter Notebook
