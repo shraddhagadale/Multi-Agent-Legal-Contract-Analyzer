@@ -52,7 +52,7 @@ class PDFReportGenerator:
         self.results = results
         self.metadata = metadata
         self.styles = self._create_styles()
-        self.elements = []
+        self.elements: List = []
     
     def _create_styles(self) -> Dict[str, ParagraphStyle]:
         """Create custom paragraph styles for the report."""
@@ -178,7 +178,7 @@ class PDFReportGenerator:
         
         return output_path
     
-    def _add_header(self):
+    def _add_header(self) -> None:
         """Add report header with title and metadata."""
         # Title
         self.elements.append(Paragraph("NDA Risk Analysis Report", self.styles['title']))
@@ -192,7 +192,7 @@ class PDFReportGenerator:
         try:
             dt = datetime.fromisoformat(analyzed_at.replace('Z', '+00:00'))
             formatted_date = dt.strftime("%B %d, %Y at %I:%M %p")
-        except:
+        except (ValueError, AttributeError):
             formatted_date = analyzed_at
         
         metadata_text = f"Document: {source_file} | Analyzed: {formatted_date} | Provider: {provider}"
@@ -202,9 +202,9 @@ class PDFReportGenerator:
         self.elements.append(HRFlowable(width="100%", color=self.COLORS['border']))
         self.elements.append(Spacer(1, 12))
     
-    def _add_summary(self):
+    def _add_summary(self) -> None:
         """Add executive summary with risk distribution."""
-        self.elements.append(Paragraph("📊 Executive Summary", self.styles['section_header']))
+        self.elements.append(Paragraph("Executive Summary", self.styles['section_header']))
         
         total_clauses = self.results.get('total_clauses', 0)
         high_count = len(self.results.get('high_risk_clauses', []))
@@ -219,9 +219,9 @@ class PDFReportGenerator:
         # Risk distribution table
         risk_data = [
             ['Risk Level', 'Count', 'Status'],
-            ['🔴 High Risk', str(high_count), 'Action Required'],
-            ['🟡 Medium Risk', str(medium_count), 'Review Recommended'],
-            ['🟢 Low Risk', str(low_count), 'Acceptable'],
+            ['HIGH RISK', str(high_count), 'Action Required'],
+            ['MEDIUM RISK', str(medium_count), 'Review Recommended'],
+            ['LOW RISK', str(low_count), 'Acceptable'],
         ]
         
         table = Table(risk_data, colWidths=[2*inch, 1*inch, 2*inch])
@@ -247,21 +247,21 @@ class PDFReportGenerator:
         self.elements.append(table)
         self.elements.append(Spacer(1, 20))
     
-    def _add_high_risk_section(self):
+    def _add_high_risk_section(self) -> None:
         """Add detailed high risk clauses section."""
         high_risk_clauses = self.results.get('high_risk_clauses', [])
         
         if not high_risk_clauses:
             return
         
-        self.elements.append(Paragraph("🚨 High Risk Clauses (Action Required)", self.styles['section_header']))
+        self.elements.append(Paragraph("High Risk Clauses (Action Required)", self.styles['section_header']))
         self.elements.append(HRFlowable(width="100%", color=self.COLORS['high'], thickness=2))
         self.elements.append(Spacer(1, 12))
         
         for i, clause in enumerate(high_risk_clauses, 1):
             self._add_high_risk_clause(i, clause)
     
-    def _add_high_risk_clause(self, index: int, clause: Dict[str, Any]):
+    def _add_high_risk_clause(self, index: int, clause: Dict[str, Any]) -> None:
         """Add a single high risk clause with full details."""
         # Get clause info from the nested structure
         original_clause = clause.get('original_clause', {})
@@ -306,7 +306,7 @@ class PDFReportGenerator:
                 description = risk.get('description', '')
                 
                 severity_color = '#DC2626' if severity == 'HIGH' else '#D97706' if severity == 'MEDIUM' else '#16A34A'
-                risk_text = f"• <font color='{severity_color}'><b>{risk_type} ({severity})</b></font><br/>{self._escape_html(description)}"
+                risk_text = f"* <font color='{severity_color}'><b>{risk_type} ({severity})</b></font><br/>{self._escape_html(description)}"
                 self.elements.append(Paragraph(risk_text, self.styles['risk_item']))
             self.elements.append(Spacer(1, 6))
         
@@ -314,7 +314,7 @@ class PDFReportGenerator:
         if recommendations:
             self.elements.append(Paragraph("<b>Recommendations:</b>", self.styles['label']))
             for rec in recommendations:
-                rec_text = f"☐ {self._escape_html(rec)}"
+                rec_text = f"- {self._escape_html(rec)}"
                 self.elements.append(Paragraph(rec_text, self.styles['recommendation']))
         
         # Divider between clauses
@@ -322,14 +322,14 @@ class PDFReportGenerator:
         self.elements.append(HRFlowable(width="100%", color=self.COLORS['border']))
         self.elements.append(Spacer(1, 10))
     
-    def _add_medium_risk_section(self):
+    def _add_medium_risk_section(self) -> None:
         """Add medium risk clauses as summary table."""
         medium_risk_clauses = self.results.get('medium_risk_clauses', [])
         
         if not medium_risk_clauses:
             return
         
-        self.elements.append(Paragraph("⚠️ Medium Risk Clauses (Review Recommended)", self.styles['section_header']))
+        self.elements.append(Paragraph("Medium Risk Clauses (Review Recommended)", self.styles['section_header']))
         self.elements.append(HRFlowable(width="100%", color=self.COLORS['medium'], thickness=2))
         self.elements.append(Spacer(1, 12))
         
@@ -376,14 +376,14 @@ class PDFReportGenerator:
         self.elements.append(table)
         self.elements.append(Spacer(1, 20))
     
-    def _add_low_risk_section(self):
+    def _add_low_risk_section(self) -> None:
         """Add low risk clauses as simple list."""
         low_risk_clauses = self.results.get('low_risk_clauses', [])
         
         if not low_risk_clauses:
             return
         
-        self.elements.append(Paragraph("✅ Low Risk Clauses (Acceptable)", self.styles['section_header']))
+        self.elements.append(Paragraph("Low Risk Clauses (Acceptable)", self.styles['section_header']))
         self.elements.append(HRFlowable(width="100%", color=self.COLORS['low'], thickness=2))
         self.elements.append(Spacer(1, 12))
         
@@ -394,7 +394,7 @@ class PDFReportGenerator:
             clause_id = original_clause.get('clause_id', '')
             risk_score = clause.get('risk_score', 0)
             
-            item_text = f"• {clause_title}"
+            item_text = f"* {clause_title}"
             if clause_id:
                 item_text += f" ({clause_id})"
             item_text += f" - Score: {risk_score:.2f}"
@@ -403,7 +403,7 @@ class PDFReportGenerator:
         
         self.elements.append(Spacer(1, 20))
     
-    def _add_footer(self):
+    def _add_footer(self) -> None:
         """Add report footer."""
         self.elements.append(Spacer(1, 20))
         self.elements.append(HRFlowable(width="100%", color=self.COLORS['border']))

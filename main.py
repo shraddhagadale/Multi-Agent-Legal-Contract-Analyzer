@@ -7,7 +7,7 @@ and detect potential risks.
 
 Usage:
     python main.py <document_file>           # Analyze a document and generate PDF report
-    python main.py <document_file> --no-save # Analyze without saving report
+    python main.py <document_file> -o out.pdf # Specify output file name
     python main.py --help                    # Show usage
 """
 
@@ -23,12 +23,8 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 from dotenv import load_dotenv
 
-from utils.llm_provider_manager import LLMProviderManager
-from utils.prompt_manager import PromptManager
-from utils.pdf_generator import PDFReportGenerator
-from agents.splitter_agent import ClauseSplitterAgent
-from agents.classifier_agent import ClauseClassifierAgent
-from agents.risk_detector_agent import RiskDetectorAgent
+from legaldoc.utils import LLMProviderManager, PDFReportGenerator
+from legaldoc.agents import ClauseSplitterAgent, ClauseClassifierAgent, RiskDetectorAgent
 
 # Load environment variables
 load_dotenv()
@@ -54,23 +50,18 @@ class LegalDocAI:
         1. Configure OpenAI (primary) based on API key presence
         2. Configure Gemini (fallback) based on API key presence
         3. Fall back automatically at runtime if primary fails
-        4. Load the correct prompts for the active provider
         """
         try:
             # Initialize LLM manager (handles provider configuration)
             self.llm_manager = LLMProviderManager()
             
-            # Initialize Prompt Manager with the active provider
-            self.prompt_manager = PromptManager(self.llm_manager)
-            
         except Exception as e:
-            # Only print fatal errors
-            sys.exit(f"❌ FATAL ERROR: {e}")
+            sys.exit(f"FATAL ERROR: {e}")
 
-        # Initialize agents with the LLM manager and PromptManager
-        self.splitter_agent = ClauseSplitterAgent(self.llm_manager, self.prompt_manager)
-        self.classifier_agent = ClauseClassifierAgent(self.llm_manager, self.prompt_manager)
-        self.risk_detector_agent = RiskDetectorAgent(self.llm_manager, self.prompt_manager)
+        # Initialize agents with the LLM manager
+        self.splitter_agent = ClauseSplitterAgent(self.llm_manager)
+        self.classifier_agent = ClauseClassifierAgent(self.llm_manager)
+        self.risk_detector_agent = RiskDetectorAgent(self.llm_manager)
 
     def analyze_document(self, document_text: str) -> Dict[str, Any]:
         """
@@ -85,19 +76,19 @@ class LegalDocAI:
         # Step 1: Split document into clauses
         print("Step 1: Splitting document into clauses...", end=" ", flush=True)
         clauses = self.splitter_agent.split_document(document_text)
-        print(f"✅ Found {len(clauses)} clauses")
+        print(f"Found {len(clauses)} clauses")
 
         # Step 2: Classify clauses
         print(f"Step 2: Classifying {len(clauses)} clauses...", end=" ", flush=True)
         classifications = self.classifier_agent.classify_multiple_clauses(clauses)
-        print("✅ Done")
+        print("Done")
 
         # Step 3: Assess risks
         print(f"Step 3: Assessing risks...", end=" ", flush=True)
         risk_assessments = self.risk_detector_agent.detect_risks_multiple_clauses(
             clauses, classifications
         )
-        print("✅ Done")
+        print("Done")
         
         # Categorize risks by level
         high_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'HIGH']
@@ -116,7 +107,7 @@ class LegalDocAI:
             "low_risk_clauses": low_risk_clauses,
             "provider_used": self.llm_manager.get_provider_name()
         }
-        print("✅ Done")
+        print("Done")
         
         return results
 
@@ -188,17 +179,17 @@ def main():
         if os.path.exists(potential_path):
             doc_path = potential_path
         else:
-            sys.exit(f"❌ Error: Document not found: {args.document} (checked root and {FILES_DIR}/)")
+            sys.exit(f"Error: Document not found: {args.document} (checked root and {FILES_DIR}/)")
     
     # Read the document
     try:
         with open(doc_path, "r", encoding="utf-8") as f:
             document_text = f.read()
     except Exception as e:
-        sys.exit(f"❌ Error reading file: {e}")
+        sys.exit(f"Error reading file: {e}")
     
     print(f"LegalDoc AI Analysis System")
-    print(f"📄 Document: {doc_path} ({len(document_text)} chars)\n")
+    print(f"Document: {doc_path} ({len(document_text)} chars)\n")
     
     # Initialize and run analysis
     try:
@@ -216,14 +207,13 @@ def main():
         # Generate report
         print(f"Step 5: Generating PDF report...", end=" ", flush=True)
         report_path = legal_ai.generate_report(results, doc_path, output_path)
-        print("✅ Done")
-        print(f"\n📊 Analysis complete!")
-        print(f"📄 Report saved: {report_path}")
+        print("Done")
+        print(f"\nAnalysis complete!")
+        print(f"Report saved: {report_path}")
             
     except Exception as e:
-        sys.exit(f"❌ Error: {e}")
+        sys.exit(f"Error: {e}")
 
 
 if __name__ == "__main__":
     main()
-

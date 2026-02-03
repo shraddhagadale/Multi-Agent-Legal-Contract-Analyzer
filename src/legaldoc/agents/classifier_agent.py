@@ -5,33 +5,43 @@ This agent classifies legal clauses into specific categories based on
 their content and purpose.
 """
 
+import logging
 from typing import Dict, Any, List
 
-from utils.schemas import ClassificationResult
+from legaldoc.utils.schemas import ClassificationResult
+from .base_agent import BaseAgent
 
 
-class ClauseClassifierAgent:
+logger = logging.getLogger(__name__)
+
+
+class ClauseClassifierAgent(BaseAgent):
     """
     Agent responsible for classifying legal clauses into categories.
     
     Uses the LLM to analyze clause content and assign appropriate
     legal categories with confidence scores.
     """
-
-    def __init__(self, llm_manager, prompt_manager):
-        """
-        Initialize the Clause Classifier Agent.
-        
-        Args:
-            llm_manager: LLMProviderManager instance for making LLM calls
-            prompt_manager: PromptManager instance for loading prompts
-        """
-        self.llm = llm_manager
-        self.prompt_manager = prompt_manager
-        
-        # Agent configuration
-        self.role = "Legal Classification Expert"
-        self.goal = "Accurately classify NDA clauses into specific legal categories"
+    
+    @property
+    def role(self) -> str:
+        return "Legal Classification Expert"
+    
+    @property
+    def goal(self) -> str:
+        return "Accurately classify NDA clauses into specific legal categories"
+    
+    @property
+    def prompt_name(self) -> str:
+        return "classifier_prompt"
+    
+    @property
+    def expertise(self) -> str:
+        return (
+            "You are a senior legal expert with extensive experience in contract law "
+            "and legal document analysis. You have deep knowledge of NDA structures and can "
+            "quickly identify the purpose and category of any legal clause."
+        )
 
     def classify_clause(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -51,28 +61,8 @@ class ClauseClassifierAgent:
                 clause_id=clause['clause_id']
             )
             
-            # Build messages for the LLM
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        f"You are a {self.role}. Your goal is to {self.goal}. "
-                        "You are a senior legal expert with extensive experience in contract law "
-                        "and legal document analysis. You have deep knowledge of NDA structures and can "
-                        "quickly identify the purpose and category of any legal clause."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": user_prompt
-                }
-            ]
-            
             # Call the LLM with structured output
-            classification = self.llm.structured_chat(
-                messages=messages,
-                response_model=ClassificationResult
-            )
+            classification = self._call_llm_structured(user_prompt, ClassificationResult)
             
             # Convert to dictionary and add original clause
             result = classification.model_dump()
@@ -81,7 +71,7 @@ class ClauseClassifierAgent:
             return result
 
         except Exception as e:
-            print(f"[Classifier Agent] ❌ Error classifying clause: {str(e)}")
+            logger.error(f"Error classifying clause {clause.get('clause_id', 'unknown')}: {e}")
             return self._create_fallback_classification(clause)
 
     def classify_multiple_clauses(self, clauses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -94,17 +84,7 @@ class ClauseClassifierAgent:
         Returns:
             List of classification dictionaries
         """
-        classifications = []
-        
-        for clause in clauses:
-            classification = self.classify_clause(clause)
-            classifications.append(classification)
-        
-        return classifications
-
-    def _load_prompt_template(self) -> str:
-        """Load the prompt template using PromptManager."""
-        return self.prompt_manager.load_prompt("classifier_prompt")
+        return [self.classify_clause(clause) for clause in clauses]
 
     def _create_fallback_classification(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """

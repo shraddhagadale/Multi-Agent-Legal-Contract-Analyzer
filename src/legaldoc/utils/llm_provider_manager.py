@@ -127,7 +127,7 @@ class LLMProviderManager:
     def _log_error(self, provider: str, error_msg: str):
         """Log provider-specific error messages."""
         error_lower = error_msg.lower()
-        prefix = f"[LLM Manager] ❌ {provider} Error:"
+        prefix = f"[LLM Manager] {provider} Error:"
         
         if "authentication" in error_lower or "api key" in error_lower or "401" in error_lower:
             print(f"{prefix} Invalid API Key or authentication failed.")
@@ -171,7 +171,7 @@ class LLMProviderManager:
                 errors.append(error_msg)
                 self._log_error("OpenAI", str(e))
                 if self._providers_available["gemini"]:
-                    print("[LLM Manager] 🔄 Falling back to Gemini...")
+                    print("[LLM Manager] Falling back to Gemini...")
         
         # Fallback to Gemini
         if self._providers_available["gemini"]:
@@ -225,7 +225,7 @@ class LLMProviderManager:
                 errors.append(error_msg)
                 self._log_error("OpenAI", str(e))
                 if self._providers_available["gemini"]:
-                    print("[LLM Manager] 🔄 Falling back to Gemini for structured output...")
+                    print("[LLM Manager] Falling back to Gemini for structured output...")
         
         # Fallback to Gemini
         if self._providers_available["gemini"]:

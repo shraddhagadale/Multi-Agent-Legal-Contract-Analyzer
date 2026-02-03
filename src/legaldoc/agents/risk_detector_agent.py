@@ -5,33 +5,44 @@ This agent analyzes legal clauses to identify potential risks, red flags,
 and problematic language in NDA agreements.
 """
 
+import logging
 from typing import Dict, Any, List, Optional
 
-from utils.schemas import RiskAssessmentResult
+from legaldoc.utils.schemas import RiskAssessmentResult
+from .base_agent import BaseAgent
 
 
-class RiskDetectorAgent:
+logger = logging.getLogger(__name__)
+
+
+class RiskDetectorAgent(BaseAgent):
     """
     Agent responsible for detecting risks in legal clauses.
     
     Uses the LLM to identify potential legal risks, unfair terms,
     and problematic language with severity ratings and recommendations.
     """
-
-    def __init__(self, llm_manager, prompt_manager):
-        """
-        Initialize the Risk Detector Agent.
-        
-        Args:
-            llm_manager: LLMProviderManager instance for making LLM calls
-            prompt_manager: PromptManager instance for loading prompts
-        """
-        self.llm = llm_manager
-        self.prompt_manager = prompt_manager
-        
-        # Agent configuration
-        self.role = "Legal Risk Assessment Expert"
-        self.goal = "Identify potential risks, red flags, and problematic language in NDA clauses"
+    
+    @property
+    def role(self) -> str:
+        return "Legal Risk Assessment Expert"
+    
+    @property
+    def goal(self) -> str:
+        return "Identify potential risks, red flags, and problematic language in NDA clauses"
+    
+    @property
+    def prompt_name(self) -> str:
+        return "risk_detector_prompt"
+    
+    @property
+    def expertise(self) -> str:
+        return (
+            "You are a senior legal risk analyst with decades of experience in "
+            "contract negotiation and risk assessment. You have an exceptional ability to "
+            "spot problematic language, unfair terms, and potential legal pitfalls in "
+            "commercial agreements. Your expertise helps protect parties from unfavorable terms."
+        )
 
     def detect_risks(
         self,
@@ -57,29 +68,8 @@ class RiskDetectorAgent:
                 clause_category=classification.get('category', 'Unknown') if classification else 'Unknown'
             )
             
-            # Build messages for the LLM
-            messages = [
-                {
-                    "role": "system",
-                    "content": (
-                        f"You are a {self.role}. Your goal is to {self.goal}. "
-                        "You are a senior legal risk analyst with decades of experience in "
-                        "contract negotiation and risk assessment. You have an exceptional ability to "
-                        "spot problematic language, unfair terms, and potential legal pitfalls in "
-                        "commercial agreements. Your expertise helps protect parties from unfavorable terms."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": user_prompt
-                }
-            ]
-            
             # Call the LLM with structured output
-            risk_assessment = self.llm.structured_chat(
-                messages=messages,
-                response_model=RiskAssessmentResult
-            )
+            risk_assessment = self._call_llm_structured(user_prompt, RiskAssessmentResult)
             
             # Convert to dictionary and add context
             result = risk_assessment.model_dump()
@@ -89,7 +79,7 @@ class RiskDetectorAgent:
             return result
 
         except Exception as e:
-            print(f"[Risk Detector] ❌ Error detecting risks: {str(e)}")
+            logger.error(f"Error detecting risks for clause {clause.get('clause_id', 'unknown')}: {e}")
             return self._create_fallback_risk_assessment(clause)
 
     def detect_risks_multiple_clauses(
@@ -107,21 +97,14 @@ class RiskDetectorAgent:
         Returns:
             List of risk assessment dictionaries
         """
-        risk_assessments = []
-        
         # If classifications not provided, use None for each
         if classifications is None:
             classifications = [None] * len(clauses)
         
-        for clause, classification in zip(clauses, classifications):
-            risk_assessment = self.detect_risks(clause, classification)
-            risk_assessments.append(risk_assessment)
-        
-        return risk_assessments
-
-    def _load_prompt_template(self) -> str:
-        """Load the prompt template using PromptManager."""
-        return self.prompt_manager.load_prompt("risk_detector_prompt")
+        return [
+            self.detect_risks(clause, classification)
+            for clause, classification in zip(clauses, classifications)
+        ]
 
     def _create_fallback_risk_assessment(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """
