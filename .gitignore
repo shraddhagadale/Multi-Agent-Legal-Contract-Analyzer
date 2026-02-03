@@ -29,18 +29,10 @@ wheels/
 *.swp
 *.swo
 
-# Output files
-output_*.json
-risk_assessments_output.json
-classifications_output.json
-clauses_output.json
 
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# macOS
-.DS_Store
-nda_analysis_report.json
 
 # Data directory
 files/
