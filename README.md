@@ -294,6 +294,3 @@ mypy src/
 | tenacity | Retry logic and resilience |
 | reportlab | PDF generation |
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
