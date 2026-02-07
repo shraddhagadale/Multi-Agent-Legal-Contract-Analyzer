@@ -1,6 +1,6 @@
 # Multi-Agent Legal Contract Analyzer
 
-A multi-agent AI system for analyzing legal documents, with a focus on Non-Disclosure Agreements (NDAs) and other contract types. The system automatically extracts clauses, classifies them by category, detects potential risks, and generates comprehensive PDF reports with actionable recommendations.
+A multi-agent AI system for analyzing legal documents, with a focus on Non-Disclosure Agreements (NDAs).The system automatically extracts clauses, classifies them by category, detects potential risks, and generates comprehensive PDF report with actionable recommendations.
 
 ## Table of Contents
 
@@ -37,38 +37,6 @@ The system supports multiple LLM providers with automatic fallback capabilities,
 - **Multiple File Format Support**: Accepts `.txt`, `.md`, and other text-based formats
 - **Command-Line Interface**: Simple CLI for easy integration into workflows
 
-## Architecture
-
-```
-                    +-------------------+
-                    |    Document       |
-                    |    Input          |
-                    +--------+----------+
-                             |
-                             v
-                    +--------+----------+
-                    |  Clause Splitter  |
-                    |      Agent        |
-                    +--------+----------+
-                             |
-                             v
-                    +--------+----------+
-                    | Clause Classifier |
-                    |      Agent        |
-                    +--------+----------+
-                             |
-                             v
-                    +--------+----------+
-                    |   Risk Detector   |
-                    |      Agent        |
-                    +--------+----------+
-                             |
-                             v
-                    +--------+----------+
-                    |   PDF Report      |
-                    |   Generator       |
-                    +-------------------+
-```
 
 ## Installation
 
@@ -120,10 +88,6 @@ cp .env.example .env
 OPENAI_API_KEY=your_openai_api_key_here
 GOOGLE_API_KEY=your_google_api_key_here
 
-# Optional: Model configuration
-OPENAI_MODEL_NAME=gpt-4
-GOOGLE_MODEL_NAME=gemini-pro
-```
 
 The system uses OpenAI as the primary provider and Google Gemini as a fallback. If the primary provider fails or is not configured, it automatically switches to the fallback.
 

@@ -30,13 +30,9 @@ from tenacity import (
 
 from .load_env import get_config
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-# Suppress verbose HTTP request logs from OpenAI/httpx
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging.getLogger("httpcore").setLevel(logging.WARNING)
+# Module logger
+logger = logging.getLogger(__name__)
 
 # Generic type for Pydantic response models
 T = TypeVar("T", bound=BaseModel)
@@ -107,6 +103,7 @@ class LLMProviderManager:
             self._openai_client = openai.OpenAI(api_key=self.openai_key)
             self._providers_available["openai"] = True
             self.active_provider = "openai"
+            logger.debug("OpenAI provider initialized")
         
         # Initialize Gemini if key exists
         if self.google_key:
@@ -114,6 +111,7 @@ class LLMProviderManager:
             self._providers_available["gemini"] = True
             if not self.active_provider:
                 self.active_provider = "gemini"
+            logger.debug("Gemini provider initialized")
         
         # Check if at least one provider is available
         if not any(self._providers_available.values()):
@@ -123,22 +121,23 @@ class LLMProviderManager:
                 "- OPENAI_API_KEY\n"
                 "- GEMINI_API_KEY (or GOOGLE_API_KEY)"
             )
+        
+        logger.info(f"LLM Provider initialized with: {self.active_provider}")
     
     def _log_error(self, provider: str, error_msg: str):
         """Log provider-specific error messages."""
         error_lower = error_msg.lower()
-        prefix = f"[LLM Manager] {provider} Error:"
         
         if "authentication" in error_lower or "api key" in error_lower or "401" in error_lower:
-            print(f"{prefix} Invalid API Key or authentication failed.")
+            logger.error(f"{provider}: Invalid API Key or authentication failed")
         elif "rate limit" in error_lower or "quota" in error_lower or "429" in error_lower:
-            print(f"{prefix} Rate limit exceeded or quota depleted.")
+            logger.warning(f"{provider}: Rate limit exceeded or quota depleted")
         elif "not found" in error_lower or "404" in error_lower:
-            print(f"{prefix} Model not found or unavailable.")
+            logger.error(f"{provider}: Model not found or unavailable")
         elif "connection" in error_lower or "timeout" in error_lower or "503" in error_lower:
-            print(f"{prefix} Network connection issue or server unavailable.")
+            logger.error(f"{provider}: Network connection issue or server unavailable")
         else:
-            print(f"{prefix} {error_msg[:200]}")
+            logger.error(f"{provider}: {error_msg[:200]}")
     
     def chat(
         self,
@@ -171,7 +170,7 @@ class LLMProviderManager:
                 errors.append(error_msg)
                 self._log_error("OpenAI", str(e))
                 if self._providers_available["gemini"]:
-                    print("[LLM Manager] Falling back to Gemini...")
+                    logger.info("Falling back to Gemini...")
         
         # Fallback to Gemini
         if self._providers_available["gemini"]:
@@ -225,7 +224,7 @@ class LLMProviderManager:
                 errors.append(error_msg)
                 self._log_error("OpenAI", str(e))
                 if self._providers_available["gemini"]:
-                    print("[LLM Manager] Falling back to Gemini for structured output...")
+                    logger.info("Falling back to Gemini for structured output...")
         
         # Fallback to Gemini
         if self._providers_available["gemini"]:

@@ -6,8 +6,111 @@ Using Pydantic models ensures type safety, automatic validation, and consistent
 data structures across the application.
 """
 
-from typing import List, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
+
+
+# =============================================================================
+# Shared Type Definitions
+# =============================================================================
+
+ClauseType = Literal[
+    "definitions",
+    "confidentiality",
+    "permitted_disclosures",
+    "obligations",
+    "term_and_duration",
+    "termination",
+    "return_of_materials",
+    "remedies",
+    "indemnification",
+    "non_compete",
+    "non_solicitation",
+    "governing_law",
+    "dispute_resolution",
+    "notices",
+    "assignment",
+    "amendments",
+    "severability",
+    "entire_agreement",
+    "waiver",
+    "recitals",
+    "execution",
+    "miscellaneous",
+]
+
+CategoryType = Literal[
+    "Definitions",
+    "Confidentiality",
+    "Permitted Disclosures",
+    "Obligations",
+    "Term and Duration",
+    "Termination",
+    "Return of Materials",
+    "Remedies",
+    "Indemnification",
+    "Non-Compete",
+    "Non-Solicitation",
+    "Governing Law",
+    "Dispute Resolution",
+    "Notices",
+    "Assignment",
+    "Amendments",
+    "Severability",
+    "Entire Agreement",
+    "Waiver",
+    "Recitals",
+    "Execution",
+    "Miscellaneous",
+]
+
+RiskLevel = Literal["NONE", "LOW", "MEDIUM", "HIGH"]
+
+Severity = Literal["LOW", "MEDIUM", "HIGH"]
+
+NDAType = Literal["mutual_nda", "unilateral_nda", "unknown"]
+
+
+# =============================================================================
+# Document Analyzer Agent Schemas (for Section 4)
+# =============================================================================
+
+class PartyInfo(BaseModel):
+    """Information about a party in the NDA."""
+
+    name: str = Field(
+        description="Name of the party as stated in the document"
+    )
+    role: str = Field(
+        description="Role in the NDA (e.g., 'Disclosing Party', 'Receiving Party')"
+    )
+
+
+class DocumentAnalysis(BaseModel):
+    """Response schema for the Document Analyzer Agent."""
+
+    document_type: NDAType = Field(
+        description="The type of NDA: mutual_nda, unilateral_nda, or unknown"
+    )
+    parties: List[PartyInfo] = Field(
+        description="List of parties involved in the NDA"
+    )
+    effective_date: Optional[str] = Field(
+        default=None,
+        description="Effective date of the NDA if stated"
+    )
+    summary: str = Field(
+        description=(
+            "A 2-4 sentence summary of the NDA's purpose, "
+            "key terms, and scope"
+        )
+    )
+    key_observations: List[str] = Field(
+        description=(
+            "Notable structural or substantive observations about the NDA "
+            "(e.g., 'unilateral NDA favoring Company X', 'missing standard exclusions')"
+        )
+    )
 
 
 # =============================================================================
@@ -15,8 +118,8 @@ from pydantic import BaseModel, Field
 # =============================================================================
 
 class Clause(BaseModel):
-    """Represents a single clause extracted from a legal document."""
-    
+    """Represents a single clause extracted from an NDA document."""
+
     clause_id: str = Field(
         description="Unique identifier for the clause (e.g., 'clause_1')"
     )
@@ -29,16 +132,61 @@ class Clause(BaseModel):
     clause_text: str = Field(
         description="The full verbatim text content of the clause"
     )
-    clause_type: str = Field(
-        description="The legal category of the clause (e.g., 'Confidentiality', 'Term', 'Definitions')"
+    clause_type: ClauseType = Field(
+        description="The legal category type of the clause"
     )
 
 
 class SplitterResponse(BaseModel):
     """Response schema for the Clause Splitter Agent."""
-    
+
     clauses: List[Clause] = Field(
         description="List of all clauses extracted from the document"
+    )
+
+
+# =============================================================================
+# Splitter Verification Agent Schemas (for Section 6)
+# =============================================================================
+
+class VerificationIssue(BaseModel):
+    """A single issue found during split verification."""
+
+    issue_type: Literal[
+        "missing_content",
+        "duplicate_content",
+        "incorrect_split",
+        "wrong_clause_type",
+        "merged_concepts",
+    ] = Field(
+        description="Type of issue found"
+    )
+    description: str = Field(
+        description="Description of what is wrong"
+    )
+    affected_clause_ids: List[str] = Field(
+        description="IDs of clauses affected by this issue"
+    )
+    suggestion: str = Field(
+        description="How to fix this issue"
+    )
+
+
+class SplitterVerificationResult(BaseModel):
+    """Response schema for the Splitter Verification Agent."""
+
+    is_valid: bool = Field(
+        description="Whether the split is acceptable (no critical issues)"
+    )
+    total_clauses_reviewed: int = Field(
+        description="Number of clauses reviewed"
+    )
+    issues: List[VerificationIssue] = Field(
+        default_factory=list,
+        description="List of issues found in the split"
+    )
+    summary: str = Field(
+        description="Brief summary of verification result"
     )
 
 
@@ -48,12 +196,12 @@ class SplitterResponse(BaseModel):
 
 class ClassificationResult(BaseModel):
     """Represents the classification result for a single clause."""
-    
+
     clause_id: str = Field(
         description="The ID of the clause being classified"
     )
-    category: str = Field(
-        description="Primary legal category (e.g., 'Confidentiality Obligations', 'Term and Termination')"
+    category: CategoryType = Field(
+        description="Primary legal category"
     )
     subcategory: Optional[str] = Field(
         default=None,
@@ -65,7 +213,7 @@ class ClassificationResult(BaseModel):
         description="Confidence score between 0.0 and 1.0"
     )
     reasoning: str = Field(
-        description="Explanation of why this classification was chosen"
+        description="Step-by-step explanation of why this classification was chosen"
     )
 
 
@@ -75,15 +223,15 @@ class ClassificationResult(BaseModel):
 
 class IdentifiedRisk(BaseModel):
     """Represents a single risk identified in a clause."""
-    
+
     risk_type: str = Field(
         description="Category of the risk (e.g., 'Overbroad Language', 'Missing Limitation')"
     )
     description: str = Field(
         description="Detailed description of the identified risk"
     )
-    severity: str = Field(
-        description="Severity level: 'LOW', 'MEDIUM', or 'HIGH'"
+    severity: Severity = Field(
+        description="Severity level of this specific risk"
     )
     impact: str = Field(
         description="Potential impact of this risk on the parties"
@@ -92,12 +240,12 @@ class IdentifiedRisk(BaseModel):
 
 class RiskAssessmentResult(BaseModel):
     """Response schema for the Risk Detector Agent."""
-    
+
     clause_id: str = Field(
         description="The ID of the clause being assessed"
     )
-    risk_level: str = Field(
-        description="Overall risk level: 'LOW', 'MEDIUM', 'HIGH', or 'NONE'"
+    risk_level: RiskLevel = Field(
+        description="Overall risk level for this clause"
     )
     risk_score: float = Field(
         ge=0.0,
@@ -110,7 +258,7 @@ class RiskAssessmentResult(BaseModel):
     )
     recommendations: List[str] = Field(
         default_factory=list,
-        description="List of recommendations to mitigate the identified risks"
+        description="List of specific, actionable recommendations to mitigate risks"
     )
     overall_assessment: str = Field(
         description="Summary assessment of the clause's risk profile"

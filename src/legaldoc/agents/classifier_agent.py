@@ -43,12 +43,17 @@ class ClauseClassifierAgent(BaseAgent):
             "quickly identify the purpose and category of any legal clause."
         )
 
-    def classify_clause(self, clause: Dict[str, Any]) -> Dict[str, Any]:
+    def classify_clause(
+        self,
+        clause: Dict[str, Any],
+        document_summary: str = "No document context available.",
+    ) -> Dict[str, Any]:
         """
         Classify a single clause.
         
         Args:
             clause: Clause dictionary with 'clause_id' and 'clause_text'
+            document_summary: Summary context from the Document Analyzer agent
         
         Returns:
             Classification dictionary with category, confidence, and reasoning
@@ -58,7 +63,8 @@ class ClauseClassifierAgent(BaseAgent):
             prompt_template = self._load_prompt_template()
             user_prompt = prompt_template.format(
                 clause_text=clause['clause_text'],
-                clause_id=clause['clause_id']
+                clause_id=clause['clause_id'],
+                document_summary=document_summary,
             )
             
             # Call the LLM with structured output
@@ -74,17 +80,25 @@ class ClauseClassifierAgent(BaseAgent):
             logger.error(f"Error classifying clause {clause.get('clause_id', 'unknown')}: {e}")
             return self._create_fallback_classification(clause)
 
-    def classify_multiple_clauses(self, clauses: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def classify_multiple_clauses(
+        self,
+        clauses: List[Dict[str, Any]],
+        document_summary: str = "No document context available.",
+    ) -> List[Dict[str, Any]]:
         """
         Classify multiple clauses.
         
         Args:
             clauses: List of clause dictionaries
+            document_summary: Summary context from the Document Analyzer agent
         
         Returns:
             List of classification dictionaries
         """
-        return [self.classify_clause(clause) for clause in clauses]
+        return [
+            self.classify_clause(clause, document_summary)
+            for clause in clauses
+        ]
 
     def _create_fallback_classification(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """

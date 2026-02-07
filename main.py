@@ -24,7 +24,12 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 from dotenv import load_dotenv
 
 from legaldoc.utils import LLMProviderManager, PDFReportGenerator
-from legaldoc.agents import ClauseSplitterAgent, ClauseClassifierAgent, RiskDetectorAgent
+from legaldoc.agents import (
+    DocumentAnalyzerAgent,
+    ClauseSplitterAgent,
+    ClauseClassifierAgent,
+    RiskDetectorAgent,
+)
 
 # Load environment variables
 load_dotenv()
@@ -34,7 +39,8 @@ class LegalDocAI:
     """
     Main orchestrator for the Legal Document AI system.
     
-    Coordinates three agents:
+    Coordinates four agents:
+    0. DocumentAnalyzerAgent - Detects NDA type, parties, and summary
     1. ClauseSplitterAgent - Splits documents into clauses
     2. ClauseClassifierAgent - Classifies clauses by category
     3. RiskDetectorAgent - Detects risks in clauses
@@ -59,6 +65,7 @@ class LegalDocAI:
             sys.exit(f"FATAL ERROR: {e}")
 
         # Initialize agents with the LLM manager
+        self.document_analyzer = DocumentAnalyzerAgent(self.llm_manager)
         self.splitter_agent = ClauseSplitterAgent(self.llm_manager)
         self.classifier_agent = ClauseClassifierAgent(self.llm_manager)
         self.risk_detector_agent = RiskDetectorAgent(self.llm_manager)
@@ -73,20 +80,28 @@ class LegalDocAI:
         Returns:
             Dictionary containing all analysis results
         """
+        # Step 0: Analyze document context
+        print("Step 0: Analyzing document...", end=" ", flush=True)
+        document_context = self.document_analyzer.analyze_document(document_text)
+        doc_summary = document_context.get("formatted_summary", "No context available.")
+        print(f"Detected: {document_context['document_type']}")
+
         # Step 1: Split document into clauses
         print("Step 1: Splitting document into clauses...", end=" ", flush=True)
         clauses = self.splitter_agent.split_document(document_text)
         print(f"Found {len(clauses)} clauses")
 
-        # Step 2: Classify clauses
+        # Step 2: Classify clauses (with document context)
         print(f"Step 2: Classifying {len(clauses)} clauses...", end=" ", flush=True)
-        classifications = self.classifier_agent.classify_multiple_clauses(clauses)
+        classifications = self.classifier_agent.classify_multiple_clauses(
+            clauses, document_summary=doc_summary
+        )
         print("Done")
 
-        # Step 3: Assess risks
+        # Step 3: Assess risks (with document context)
         print(f"Step 3: Assessing risks...", end=" ", flush=True)
         risk_assessments = self.risk_detector_agent.detect_risks_multiple_clauses(
-            clauses, classifications
+            clauses, classifications, document_summary=doc_summary
         )
         print("Done")
         
@@ -98,6 +113,7 @@ class LegalDocAI:
         # Step 4: Compile results
         print("Step 4: Compiling results...", end=" ", flush=True)
         results = {
+            "document_context": document_context,
             "total_clauses": len(clauses),
             "clauses": clauses,
             "classifications": classifications,

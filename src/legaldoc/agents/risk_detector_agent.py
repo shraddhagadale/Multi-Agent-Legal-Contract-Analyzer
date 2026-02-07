@@ -47,7 +47,8 @@ class RiskDetectorAgent(BaseAgent):
     def detect_risks(
         self,
         clause: Dict[str, Any],
-        classification: Optional[Dict[str, Any]] = None
+        classification: Optional[Dict[str, Any]] = None,
+        document_summary: str = "No document context available.",
     ) -> Dict[str, Any]:
         """
         Detect risks in a single clause.
@@ -55,6 +56,7 @@ class RiskDetectorAgent(BaseAgent):
         Args:
             clause: Clause dictionary with 'clause_id' and 'clause_text'
             classification: Optional classification dictionary for context
+            document_summary: Summary context from the Document Analyzer agent
         
         Returns:
             Risk assessment dictionary with identified risks and recommendations
@@ -65,7 +67,8 @@ class RiskDetectorAgent(BaseAgent):
             user_prompt = prompt_template.format(
                 clause_text=clause['clause_text'],
                 clause_id=clause['clause_id'],
-                clause_category=classification.get('category', 'Unknown') if classification else 'Unknown'
+                clause_category=classification.get('category', 'Unknown') if classification else 'Unknown',
+                document_summary=document_summary,
             )
             
             # Call the LLM with structured output
@@ -85,7 +88,8 @@ class RiskDetectorAgent(BaseAgent):
     def detect_risks_multiple_clauses(
         self,
         clauses: List[Dict[str, Any]],
-        classifications: Optional[List[Dict[str, Any]]] = None
+        classifications: Optional[List[Dict[str, Any]]] = None,
+        document_summary: str = "No document context available.",
     ) -> List[Dict[str, Any]]:
         """
         Detect risks in multiple clauses.
@@ -93,6 +97,7 @@ class RiskDetectorAgent(BaseAgent):
         Args:
             clauses: List of clause dictionaries
             classifications: Optional list of classification dictionaries
+            document_summary: Summary context from the Document Analyzer agent
         
         Returns:
             List of risk assessment dictionaries
@@ -102,13 +107,17 @@ class RiskDetectorAgent(BaseAgent):
             classifications = [None] * len(clauses)
         
         return [
-            self.detect_risks(clause, classification)
+            self.detect_risks(clause, classification, document_summary)
             for clause, classification in zip(clauses, classifications)
         ]
 
     def _create_fallback_risk_assessment(self, clause: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a fallback risk assessment when parsing fails.
+        
+        Uses conservative defaults (MEDIUM risk, 0.5 score) so that clauses
+        whose analysis failed are flagged for manual review rather than
+        silently passed as safe.
         
         Args:
             clause: The original clause dictionary
@@ -118,13 +127,13 @@ class RiskDetectorAgent(BaseAgent):
         """
         return {
             "clause_id": clause.get('clause_id', 'unknown'),
-            "risk_level": "UNKNOWN",
-            "risk_score": 0.0,
+            "risk_level": "MEDIUM",
+            "risk_score": 0.5,
             "identified_risks": [
                 {
                     "risk_type": "Analysis Failed",
                     "description": "Risk analysis could not be completed",
-                    "severity": "UNKNOWN",
+                    "severity": "MEDIUM",
                     "impact": "Unable to assess potential impact"
                 }
             ],

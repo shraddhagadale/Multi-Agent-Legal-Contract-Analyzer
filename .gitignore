@@ -36,4 +36,11 @@ wheels/
 
 
 # Data directory
-files/
+files/*
+!files/unilateral_clean.txt
+!files/unilateral_risky.txt
+!files/mutual_clean.txt
+!files/mutual_risky.txt
+docs/
+
+Implementation_Plan.md

@@ -1,0 +1,116 @@
+MUTUAL NON-DISCLOSURE AGREEMENT
+
+RISK ANNOTATIONS (applies to this Risky version only)
+- Clause 2.1 — One-sided use right
+  - Risk level: HIGH
+  - Primary concern: Breaks mutuality by giving one party broader use rights over the other’s info.
+  - Suggestion: Require both parties to use Confidential Information only for the Purpose (no unilateral carve-out).
+- Clause 3.4 — Weakened standard exclusion
+  - Risk level: MEDIUM
+  - Primary concern: Raises proof burden, making the exclusion hard to rely on in practice.
+  - Suggestion: Use a reasonable evidence standard (e.g., “competent evidence”) consistent with other exclusions.
+- Clause 4.1 — Missing compelled disclosure notice/protection
+  - Risk level: HIGH
+  - Primary concern: No notice/cooperation prevents the Disclosing Party from seeking to limit disclosure.
+  - Suggestion: Add prompt (legally permitted) notice + cooperation to seek protective order; limit disclosure scope.
+- Clause 5.2 — Perpetual confidentiality term
+  - Risk level: HIGH
+  - Primary concern: Perpetual obligation for non-trade-secret info is often unreasonable/overbroad.
+  - Suggestion: Use a fixed period (e.g., 3–5 years) for non-trade-secrets; keep “as long as trade secret” only for trade secrets.
+- Clause 6 — No return/destruction timeline or certification
+  - Risk level: MEDIUM
+  - Primary concern: No deadline/certification reduces practical enforceability and auditability.
+  - Suggestion: Add a return/destruction deadline (e.g., 10 business days) + written certification; allow limited archival/legal-hold copy.
+- Clause 7 — Disproportionate liquidated damages
+  - Risk level: HIGH
+  - Primary concern: Large per-breach liquidated damages can function as a penalty and create outsized exposure.
+  - Suggestion: Remove fixed liquidated damages; or tie to actual harm with reasonable cap and clear justification.
+
+This Mutual Non-Disclosure Agreement (this "Agreement") is entered into as of [Effective Date] (the "Effective Date") by and between:
+
+(1) Alpha Technologies, Inc., a Delaware corporation, with its principal place of business at [Address] ("Alpha"); and
+(2) Beta Innovations LLC, a Delaware limited liability company, with its principal place of business at [Address] ("Beta").
+
+Alpha and Beta may be referred to individually as a "Party" and collectively as the "Parties."
+
+The Parties agree as follows:
+
+1. DEFINITIONS
+1.1 "Affiliate" means any entity that controls, is controlled by, or is under common control with a Party, where "control" means ownership of more than fifty percent (50%) of the voting securities or the power to direct management.
+1.2 "Confidential Information" means any non-public information disclosed by or on behalf of a Party (the "Disclosing Party") to the other Party (the "Receiving Party"), whether in written, oral, visual, electronic, or other form, that is designated as confidential or that reasonably should be understood to be confidential given the nature of the information and the circumstances of disclosure, including without limitation business, technical, financial, customer, product, pricing, marketing, and trade secret information.
+1.3 "Representatives" means a Receiving Party's employees, officers, directors, contractors, and professional advisers (including attorneys and accountants) who have a need to know the Confidential Information for the Purpose (defined below) and who are bound by confidentiality obligations at least as protective as those in this Agreement.
+1.4 "Purpose" means evaluating and, if appropriate, pursuing a potential business relationship between the Parties.
+
+2. CONFIDENTIALITY OBLIGATIONS
+2.1 Non-Use and Non-Disclosure. The Receiving Party shall (a) use the Disclosing Party's Confidential Information solely for the Purpose, and (b) not disclose the Disclosing Party's Confidential Information to any third party except as expressly permitted under this Agreement. Notwithstanding the foregoing, Alpha may use Beta's Confidential Information for Alpha's internal business purposes, including product and strategy evaluation, without restriction.
+2.2 Standard of Care. The Receiving Party shall protect the Disclosing Party's Confidential Information using at least the same degree of care it uses to protect its own confidential information of similar importance, but in no event less than reasonable care.
+2.3 Limited Access. The Receiving Party may disclose the Disclosing Party's Confidential Information only to its Representatives who have a need to know for the Purpose, and the Receiving Party shall be responsible for any breach of this Agreement by its Representatives.
+2.4 No Reverse Engineering. The Receiving Party shall not disassemble, decompile, or reverse engineer any prototypes, samples, software, or other tangible items provided as Confidential Information, except to the extent such restriction is prohibited by law.
+
+3. EXCLUSIONS
+Confidential Information does not include information that the Receiving Party can demonstrate by competent written evidence:
+3.1 is or becomes generally available to the public through no breach of this Agreement by the Receiving Party;
+3.2 was rightfully known by the Receiving Party without restriction on use or disclosure prior to receipt from the Disclosing Party;
+3.3 is rightfully received by the Receiving Party from a third party without restriction on use or disclosure and without breach of any obligation to the Disclosing Party; or
+3.4 was independently developed by the Receiving Party without use of or reference to the Disclosing Party's Confidential Information, provided that the Receiving Party proves such independent development by clear and convincing evidence.
+
+4. PERMITTED DISCLOSURES
+4.1 Required Disclosures. The Receiving Party may disclose the Disclosing Party's Confidential Information to the extent required by applicable law, regulation, or legal process (including subpoena or court order), and the Receiving Party will have no obligation to provide notice to the Disclosing Party or to seek any protective order.
+4.2 Scope. Any disclosure under Section 4.1 shall be limited to the portion of Confidential Information legally required to be disclosed.
+
+5. TERM AND DURATION
+5.1 Term. This Agreement begins on the Effective Date and continues for three (3) years, unless terminated earlier by either Party upon thirty (30) days' written notice.
+5.2 Survival. The Receiving Party's obligations under this Agreement with respect to Confidential Information disclosed during the Term will survive indefinitely and will not expire, regardless of whether such information qualifies as a trade secret under applicable law.
+
+6. RETURN OF MATERIALS
+Upon the Disclosing Party's written request, the Receiving Party shall promptly return or destroy all of the Disclosing Party's Confidential Information in its possession or control, including all copies, extracts, and summaries, and the Receiving Party will have no obligation to provide any written certification of compliance. Notwithstanding the foregoing, the Receiving Party may retain one archival copy of Confidential Information solely for legal or compliance purposes, subject to the confidentiality obligations in this Agreement.
+
+7. REMEDIES
+The Receiving Party acknowledges that unauthorized use or disclosure of the Disclosing Party's Confidential Information may cause irreparable harm for which monetary damages may be an inadequate remedy. Accordingly, in the event of a breach or threatened breach, the Disclosing Party may seek injunctive relief in addition to any other remedies available at law or in equity. The Receiving Party further agrees that, for each breach, the Disclosing Party will be entitled to liquidated damages in the amount of two hundred fifty thousand dollars (US $250,000), which the Parties agree represents a reasonable estimate of damages and is not a penalty.
+
+8. NO LICENSE
+Nothing in this Agreement grants the Receiving Party any rights in or to the Disclosing Party's Confidential Information except as expressly set forth herein. All Confidential Information remains the property of the Disclosing Party.
+
+9. NO OBLIGATION
+Nothing in this Agreement obligates either Party to proceed with any transaction or relationship, and each Party reserves the right, in its sole discretion, to terminate discussions at any time.
+
+10. GOVERNING LAW
+This Agreement is governed by and construed in accordance with the laws of the State of Delaware, without regard to its conflict of laws principles.
+
+11. DISPUTE RESOLUTION
+The Parties agree to first attempt in good faith to resolve any dispute arising out of or relating to this Agreement through informal negotiations. If the dispute is not resolved within thirty (30) days, either Party may bring an action in the state or federal courts located in Delaware, and each Party consents to the personal jurisdiction of such courts.
+
+12. NOTICES
+All notices under this Agreement must be in writing and will be deemed given when delivered personally, sent by confirmed email (with a copy sent by another method), sent by nationally recognized overnight courier, or mailed by certified mail (return receipt requested) to the addresses above (or to such other address as a Party may designate by notice).
+
+13. ASSIGNMENT
+Neither Party may assign this Agreement without the prior written consent of the other Party, except to an Affiliate or in connection with a merger, acquisition, or sale of substantially all assets, provided that the assignee agrees in writing to be bound by this Agreement.
+
+14. AMENDMENTS
+Any amendment or modification of this Agreement must be in writing and signed by authorized representatives of both Parties.
+
+15. SEVERABILITY
+If any provision of this Agreement is held invalid or unenforceable, the remaining provisions will remain in full force and effect, and the invalid or unenforceable provision will be replaced by a valid, enforceable provision that most closely reflects the Parties' original intent.
+
+16. ENTIRE AGREEMENT
+This Agreement constitutes the entire agreement between the Parties with respect to the subject matter hereof and supersedes all prior or contemporaneous understandings, agreements, and communications, whether written or oral.
+
+17. WAIVER
+No waiver of any breach of this Agreement will be a waiver of any other or subsequent breach. Any waiver must be in writing and signed by the waiving Party.
+
+18. EXECUTION
+This Agreement may be executed in counterparts, each of which will be deemed an original, and all of which together will constitute one and the same instrument. Electronic signatures and PDFs are deemed original signatures for all purposes.
+
+IN WITNESS WHEREOF, the Parties have executed this Agreement as of the Effective Date.
+
+ALPHA TECHNOLOGIES, INC.
+By: ___________________________
+Name: _________________________
+Title: ________________________
+Date: _________________________
+
+BETA INNOVATIONS LLC
+By: ___________________________
+Name: _________________________
+Title: ________________________
+Date: _________________________
