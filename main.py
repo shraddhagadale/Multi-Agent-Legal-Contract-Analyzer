@@ -6,9 +6,10 @@ for analyzing legal documents (NDAs) to extract clauses, classify them,
 and detect potential risks.
 
 Usage:
-    python main.py <document_file>           # Analyze a document and generate PDF report
-    python main.py <document_file> -o out.pdf # Specify output file name
-    python main.py --help                    # Show usage
+    python main.py <document_file>              # Analyze a document and generate PDF report
+    python main.py <document_file> -o out.pdf   # Specify output file name
+    python main.py <document_file> -v           # Run with verbose agent output
+    python main.py --help                       # Show usage
 """
 
 import os
@@ -23,7 +24,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 from dotenv import load_dotenv
 
-from legaldoc.utils import LLMProviderManager, PDFReportGenerator
+from legaldoc.utils import LLMProviderManager
 from legaldoc.agents import (
     DocumentAnalyzerAgent,
     ClauseSplitterAgent,
@@ -70,12 +71,13 @@ class LegalDocAI:
         self.classifier_agent = ClauseClassifierAgent(self.llm_manager)
         self.risk_detector_agent = RiskDetectorAgent(self.llm_manager)
 
-    def analyze_document(self, document_text: str) -> Dict[str, Any]:
+    def analyze_document(self, document_text: str, verbose: bool = False) -> Dict[str, Any]:
         """
         Analyze a legal document through the full pipeline.
         
         Args:
             document_text: The full text of the legal document
+            verbose: If True, print detailed output after each agent step
         
         Returns:
             Dictionary containing all analysis results
@@ -86,10 +88,37 @@ class LegalDocAI:
         doc_summary = document_context.get("formatted_summary", "No context available.")
         print(f"Detected: {document_context['document_type']}")
 
+        if verbose:
+            print("\n--- Document Analysis ---")
+            print(f"  Type: {document_context.get('document_type', 'N/A')}")
+            parties = document_context.get('parties', [])
+            if parties:
+                parties_str = ", ".join(
+                    f"{p.get('name', '?')} ({p.get('role', '?')})" if isinstance(p, dict) else str(p)
+                    for p in parties
+                )
+                print(f"  Parties: {parties_str}")
+            print(f"  Summary: {document_context.get('summary', 'N/A')}")
+            observations = document_context.get('key_observations', [])
+            if observations:
+                print(f"  Key Observations:")
+                for obs in observations:
+                    print(f"    • {obs}")
+            print(f"  Formatted Summary:\n    {doc_summary}")
+
         # Step 1: Split document into clauses
         print("Step 1: Splitting document into clauses...", end=" ", flush=True)
         clauses = self.splitter_agent.split_document(document_text)
         print(f"Found {len(clauses)} clauses")
+
+        if verbose:
+            print("\n--- Clauses Extracted ---")
+            for c in clauses:
+                ctext_preview = c.get('clause_text', '')[:150].replace('\n', ' ')
+                if len(c.get('clause_text', '')) > 150:
+                    ctext_preview += "..."
+                print(f"  [{c.get('clause_id', '?')}] {c.get('clause_title', 'Untitled')} ({c.get('clause_type', '?')})")
+                print(f"    Text: {ctext_preview}")
 
         # Step 2: Classify clauses (with document context)
         print(f"Step 2: Classifying {len(clauses)} clauses...", end=" ", flush=True)
@@ -98,12 +127,43 @@ class LegalDocAI:
         )
         print("Done")
 
+        if verbose:
+            print("\n--- Classifications ---")
+            for cl in classifications:
+                conf = cl.get('confidence', 0)
+                print(f"  [{cl.get('clause_id', '?')}] {cl.get('category', '?')} (confidence: {conf:.2f})")
+                reasoning = cl.get('reasoning', '')
+                reasoning_preview = reasoning[:120]
+                if len(reasoning) > 120:
+                    reasoning_preview += "..."
+                print(f"    Reasoning: {reasoning_preview}")
+
         # Step 3: Assess risks (with document context)
         print(f"Step 3: Assessing risks...", end=" ", flush=True)
         risk_assessments = self.risk_detector_agent.detect_risks_multiple_clauses(
             clauses, classifications, document_summary=doc_summary
         )
         print("Done")
+
+        if verbose:
+            print("\n--- Risk Assessments ---")
+            for r in risk_assessments:
+                level = r.get('risk_level', 'NONE')
+                score = r.get('risk_score', 0)
+                print(f"  [{r.get('clause_id', '?')}] {level} (score: {score:.2f})")
+                if r.get('identified_risks'):
+                    for risk in r['identified_risks']:
+                        desc = risk.get('description', '')
+                        desc_preview = desc[:100]
+                        if len(desc) > 100:
+                            desc_preview += "..."
+                        print(f"    \u26a0 {risk.get('risk_type', '?')}: {desc_preview}")
+                if r.get('recommendations'):
+                    for rec in r['recommendations']:
+                        rec_preview = rec[:100]
+                        if len(rec) > 100:
+                            rec_preview += "..."
+                        print(f"    \u2192 {rec_preview}")
         
         # Categorize risks by level
         high_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'HIGH']
@@ -127,26 +187,70 @@ class LegalDocAI:
         
         return results
 
-    def generate_report(self, results: Dict[str, Any], source_file: str, output_path: str) -> str:
+    def display_console_summary(self, results: Dict[str, Any]):
         """
-        Generate a PDF report from the analysis results.
+        Display a structured summary of risks to the console using standard ANSI colors.
+        """
+        high_risks = results.get("high_risk_clauses", [])
+        medium_risks = results.get("medium_risk_clauses", [])
+        low_risks = results.get("low_risk_clauses", [])
         
-        Args:
-            results: Analysis results dictionary
-            source_file: Name of the source document
-            output_path: Path to save the PDF report
+        # ANSI formatting
+        RED = "\033[91m"
+        YELLOW = "\033[93m"
+        GREEN = "\033[92m"
+        BOLD = "\033[1m"
+        RESET = "\033[0m"
+        HR = "-" * 60
+        
+        print(f"\n{BOLD}=== ANALYSIS SUMMARY ==={RESET}")
+        print(f"Total Clauses: {results.get('total_clauses', 0)}")
+        print(f"High Risks:    {RED}{len(high_risks)}{RESET}")
+        print(f"Medium Risks:  {YELLOW}{len(medium_risks)}{RESET}")
+        print(f"Low Risks:     {GREEN}{len(low_risks)}{RESET}")
+        print("\n")
+        
+        def print_risk_block(risk_data, title_color):
+            original = risk_data.get('original_clause', {})
+            # Clean up ID: "clause_3" -> "Clause 3"
+            raw_id = original.get('clause_id', '?')
+            clean_id = raw_id.replace('clause_', 'Clause ').replace('_', ' ').title()
             
-        Returns:
-            Path to the generated PDF report
-        """
-        metadata = {
-            "source_file": source_file,
-            "analyzed_at": datetime.now().isoformat(),
-            "provider": results.get("provider_used", "unknown")
-        }
+            title = original.get('clause_title', 'Untitled')
+            
+            print(f"{HR}")
+            # Format: Clause 3: Title
+            print(f"{title_color}{BOLD}{clean_id}: {title}{RESET}")
+            
+            # Risks
+            print(f"\n{BOLD}Identified Risks:{RESET}")
+            for r in risk_data.get('identified_risks', []):
+                risk_type = r.get('risk_type', 'General Risk')
+                desc = r.get('description', '')
+                print(f"  • {title_color}{risk_type}{RESET}: {desc}")
+                
+            # Recommendations
+            recs = risk_data.get('recommendations', [])
+            if recs:
+                print(f"\n{BOLD}Recommendations:{RESET}")
+                for rec in recs:
+                    print(f"  • {rec}")
+            
+            print("\n")  # Extra spacing
+
+        if high_risks:
+            print(f"{RED}{BOLD}>>> HIGH RISK CLAUSES ({len(high_risks)}) <<<{RESET}")
+            for item in high_risks:
+                print_risk_block(item, RED)
+                
+        if medium_risks:
+            print(f"{YELLOW}{BOLD}>>> MEDIUM RISK CLAUSES ({len(medium_risks)}) <<<{RESET}")
+            for item in medium_risks:
+                print_risk_block(item, YELLOW)
         
-        generator = PDFReportGenerator(results, metadata)
-        return generator.generate(output_path)
+        print("\n")
+
+
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -156,8 +260,8 @@ def parse_arguments() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    python main.py contract.txt              # Analyze and generate PDF report
-    python main.py contract.txt -o my_report.pdf  # Specify output file name
+    python main.py contract.txt              # Analyze document
+    python main.py contract.txt -v           # Show detailed steps
         """
     )
     
@@ -168,10 +272,10 @@ Examples:
     )
     
     parser.add_argument(
-        "-o", "--output",
-        type=str,
-        default=None,
-        help="Output PDF file path (default: <document_name>_analysis.pdf)"
+        "-v", "--verbose",
+        action="store_true",
+        default=False,
+        help="Show detailed output from each agent step"
     )
     
     return parser.parse_args()
@@ -210,22 +314,12 @@ def main():
     # Initialize and run analysis
     try:
         legal_ai = LegalDocAI()
-        results = legal_ai.analyze_document(document_text)
+        results = legal_ai.analyze_document(document_text, verbose=args.verbose)
         
-        # Determine output path
-        if args.output:
-            output_path = args.output
-        else:
-            # Generate output filename from input filename
-            base_name = os.path.splitext(os.path.basename(doc_path))[0]
-            output_path = os.path.join(FILES_DIR, f"{base_name}_analysis.pdf")
+        # Display Console Summary
+        legal_ai.display_console_summary(results)
         
-        # Generate report
-        print(f"Step 5: Generating PDF report...", end=" ", flush=True)
-        report_path = legal_ai.generate_report(results, doc_path, output_path)
-        print("Done")
-        print(f"\nAnalysis complete!")
-        print(f"Report saved: {report_path}")
+        print(f"Analysis complete!")
             
     except Exception as e:
         sys.exit(f"Error: {e}")

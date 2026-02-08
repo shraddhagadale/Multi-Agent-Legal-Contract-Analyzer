@@ -81,7 +81,7 @@ class LLMProviderManager:
         self.google_key = self.config.get("GEMINI_API_KEY") or self.config.get("GOOGLE_API_KEY")
         
         # Model names
-        self.openai_model = self.config.get("OPENAI_MODEL_NAME", "gpt-4o-mini")
+        self.openai_model = self.config.get("OPENAI_MODEL_NAME", "gpt-4o")
         self.google_model = self.config.get("GOOGLE_MODEL_NAME", "gemini-2.0-flash")
         
         # Initialize clients based on available keys (no validation/ping)
@@ -142,7 +142,7 @@ class LLMProviderManager:
     def chat(
         self,
         messages: List[Dict[str, str]],
-        temperature: float = 0.1,
+        temperature: float = 0.0,
         max_tokens: Optional[int] = None,
     ) -> str:
         """
@@ -190,7 +190,7 @@ class LLMProviderManager:
         self,
         messages: List[Dict[str, str]],
         response_model: Type[T],
-        temperature: float = 0.1,
+        temperature: float = 0.0,
         max_retries: int = 2,
     ) -> T:
         """

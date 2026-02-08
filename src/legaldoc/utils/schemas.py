@@ -111,6 +111,20 @@ class DocumentAnalysis(BaseModel):
             "(e.g., 'unilateral NDA favoring Company X', 'missing standard exclusions')"
         )
     )
+    defined_terms: List[str] = Field(
+        default_factory=list,
+        description=(
+            "List of terms explicitly defined in the document "
+            "(e.g., 'Confidential Information', 'Affiliate', 'Representatives', 'Purpose')"
+        )
+    )
+    sections_present: List[str] = Field(
+        default_factory=list,
+        description=(
+            "List of major sections/clause types present in the document "
+            "(e.g., 'Definitions', 'Exclusions', 'Permitted Disclosures', 'Remedies')"
+        )
+    )
 
 
 # =============================================================================

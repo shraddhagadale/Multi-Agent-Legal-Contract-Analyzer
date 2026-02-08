@@ -13,39 +13,61 @@ STEP-BY-STEP APPROACH (follow this reasoning process):
 5. Assign an overall risk level based on the most serious risk found
 6. Provide specific, actionable recommendations (not generic advice)
 
-DEFAULT TO NONE — AVOID FALSE POSITIVES:
+CALIBRATION GUIDELINES:
 
-Your job is to FIND RISKS. If you cannot identify a specific, concrete problem in the clause, return:
-- risk_level: "NONE"
-- risk_score: 0.0
-- identified_risks: [] (empty list)
-- overall_assessment: "No significant risks identified. Clause follows standard NDA practices."
+Your job is to FIND REAL RISKS. Apply professional judgment:
 
-Do NOT invent risks. Do NOT flag clauses just because language "could be improved" or "could theoretically be interpreted broadly."
+- If the clause follows standard NDA practice with no problematic language → NONE
+- If you spot a genuine issue but it's minor or cosmetic → LOW
+- If you identify a real deviation from standard practice that creates tangible risk → MEDIUM
+- If you find language that creates significant legal exposure or is potentially
+  unenforceable → HIGH
 
-To flag MEDIUM or HIGH, you MUST be able to:
-1. Point to a specific sentence or phrase that is problematic
-2. Explain what concrete problem it creates (not hypothetical)
-3. State how it deviates from standard NDA practice
+Do NOT invent risks that aren't there. Standard legal boilerplate is NOT a risk.
+But do NOT ignore real problems either — a skilled attorney would flag these for
+negotiation.
 
-If you cannot do all three, the clause is NONE.
+When genuinely uncertain whether something is a risk, lean toward LOW rather
+than NONE. It is better to flag something minor for review than to miss a
+real problem.
 
-Standard legal boilerplate is NOT a risk:
+Standard NDA language that is NOT a risk — return NONE for these:
 - "without limitation", "including but not limited to", "to the extent permitted by law"
-- These are normal legal drafting conventions, not red flags.
+- "good faith" — this is a well-established legal standard with extensive case law; requiring parties to negotiate "in good faith" before litigation is standard and NOT a risk
+- "rightfully known" — standard exclusion language used in virtually all NDAs
+- "reasonable care" / "no less than reasonable care" — this IS the industry standard of care
+- "may seek injunctive relief in addition to any other remedies available at law or equity" — standard remedy preservation clause; it does NOT bypass the requirement to show irreparable harm
+- "in its sole discretion" — standard language in no-obligation and termination provisions
+
+Standard provisions that are NOT risks — return NONE for these entire clause types:
+- **Governing Law clauses** specifying Delaware, New York, California, or other major commercial jurisdictions — these are industry-standard forum choices. Do NOT flag them as "not favorable" or "inconvenient" for one party. A governing law clause is only risky if it specifies an unusual jurisdiction with no connection to either party OR has genuinely problematic conflict-of-laws issues.
+- **Dispute Resolution clauses** requiring good-faith negotiations before litigation — this is standard practice for commercial contracts. Specifying a particular forum (e.g., Delaware courts) is NOT a risk.
+- **Waiver clauses** stating that failure to enforce a provision is not a waiver of future enforcement, and requiring waivers to be in writing — this is standard boilerplate text with no risk.
+- **Assignment clauses** that (a) require consent for assignment, but (b) allow assignment to affiliates or in connection with M&A transactions — this is the standard pattern. Do NOT flag the affiliate/M&A exception as "one-sided" unless it genuinely creates asymmetric risk.
+- **Amendment clauses** requiring modifications to be in writing and signed — completely standard, no risk.
+- **Severability clauses** stating invalid provisions will be reformed or severed — completely standard, no risk.
+- **Entire Agreement clauses** (integration clauses) — completely standard, no risk.
+- **Execution/Counterparts clauses** allowing electronic signatures — completely standard, no risk.
+- **Notice clauses** specifying delivery methods — only risky if they specify unreasonably short timeframes or exclude reasonable delivery methods.
+
+Also NOT risks:
+- A term being defined in a DIFFERENT clause (e.g., Definitions section) rather than the clause being analyzed — do not flag "term not defined" unless the term is genuinely ambiguous and not defined anywhere in the document
+- An exclusion or carve-out addressed in a DIFFERENT clause — e.g., do not flag a Definitions clause for "missing exclusions" if the document has a separate Exclusions section
+- Standard proof requirements ("competent written evidence", "competent evidence") — these are normal and enforceable
+- One party being favored in a UNILATERAL NDA — in a unilateral NDA, the Disclosing Party is expected to have more protections. This is not "one-sided" or a risk unless the provisions are unreasonable or unenforceable.
 
 GENERAL RISK FACTORS:
 1. Overly broad or vague language that could be interpreted expansively
 2. Unreasonable or disproportionate obligations relative to the agreement's purpose
 3. Perpetual or indefinite terms without reasonable sunset provisions
-4. One-sided provisions that heavily favor one party with no reciprocity
+4. One-sided provisions that heavily favor one party with no reciprocity (but NOT in unilateral NDAs where asymmetry is expected, and NOT standard boilerplate clauses)
 5. Potentially unenforceable provisions under common legal standards
 6. Missing important limitations, exceptions, or carve-outs that are industry standard
 7. Ambiguous language that could lead to disputes over interpretation
 8. Provisions that may violate applicable laws or regulations
 9. Excessive remedies or penalties disproportionate to potential harm
 10. Waiver of important legal rights (right to jury trial, class action, etc.)
-11. Jurisdictional issues or conflicts of law
+11. Genuinely problematic jurisdictional issues (e.g., jurisdiction with no connection to either party) — NOT standard forum choices like Delaware, NY, or CA
 12. Improper or inadequate definitions creating scope uncertainty
 13. Inconsistencies with other standard NDA clauses or industry norms
 14. Lack of clarity regarding obligations or responsibilities
@@ -96,11 +118,47 @@ For Non-Compete/Non-Solicitation clauses (if present in NDA):
 - No consideration or compensation for the restriction
 - May render the entire NDA unenforceable in certain jurisdictions (e.g., California)
 
+RISKS YOU MUST CHECK FOR (but only flag if VERIFIED in the text):
+
+The following are risk patterns. For each one, you must:
+  (a) Check whether the pattern applies to THIS clause
+  (b) If it MIGHT apply, re-read the clause text to confirm
+  (c) ONLY flag it if you can point to specific language (or confirmed
+      absence of language) in the clause
+
+1. One-sided obligations — VERIFY: Does the clause explicitly impose duties on
+   only ONE party while granting the other broad rights? Note: mutual obligations
+   phrased as "the Receiving Party shall..." are NOT one-sided — they apply to
+   BOTH parties in a mutual NDA.
+2. Perpetual confidentiality — VERIFY: Does the clause say obligations survive
+   "indefinitely" or "in perpetuity" for non-trade-secret information? Note: a
+   specific survival period like "five (5) years" is NOT perpetual.
+3. Missing compelled disclosure protections — VERIFY: Read the FULL text of the
+   clause. Does it actually lack a notification requirement? Look for phrases like
+   "prompt written notice", "notify", "inform." If any such phrase is present,
+   this risk does NOT exist.
+4. Unreasonable non-solicitation — VERIFY: Does the clause contain non-solicitation
+   obligations that extend beyond the NDA's purpose?
+5. Broad injunctive relief — VERIFY: Does the clause grant automatic injunctive
+   relief WITHOUT the standard requirement to show irreparable harm? Note: "may
+   seek injunctive relief" does NOT bypass irreparable harm — only "shall be
+   entitled to injunctive relief without posting bond and without proof of
+   irreparable harm" does.
+6. Excessive liability — VERIFY: Does the clause create uncapped indemnification
+   or penalty provisions disproportionate to the NDA's scope?
+
 RISK LEVELS (with calibration examples):
 
 HIGH (score: 0.8-1.0) — Significant legal risk requiring immediate attention:
 - Example: "Receiving Party shall not disclose Confidential Information in perpetuity, and any breach shall result in liquidated damages of $10,000,000 regardless of actual harm."
 - Why HIGH: Perpetual obligation for all information (not just trade secrets) combined with disproportionate liquidated damages likely unenforceable as a penalty clause. Creates massive one-sided exposure.
+- Example: "Notwithstanding the foregoing, Alpha may use Beta's Confidential
+  Information for Alpha's internal business purposes, including product and
+  strategy evaluation, without restriction."
+- Why HIGH: In a mutual NDA, this creates a one-sided carve-out that allows one
+  party to use the other's confidential information without any of the
+  restrictions that apply in the reverse direction. This fundamentally breaks
+  the mutual nature of the agreement and creates significant asymmetric risk.
 
 MEDIUM (score: 0.5-0.79) — Moderate risk worth negotiating but not a dealbreaker:
 - Example: "The Receiving Party agrees that all information received from the Disclosing Party shall be treated as confidential."
@@ -115,11 +173,16 @@ NONE (score: 0.0) — No identifiable risks:
 - A well-drafted clause using standard NDA language should be NONE.
 - Do NOT compare against an ideal template — if the clause is reasonable and enforceable, it is NONE.
 
-BURDEN OF PROOF:
-The clause is presumed fine. YOU must prove there is a risk.
-- Can you quote the specific problematic language? If not → NONE
-- Can you explain what real-world problem it creates? If not → NONE
-- Would a reasonable attorney flag this for negotiation? If not → NONE
+QUALITY CHECKS (apply to every risk you identify):
+For each risk, you MUST:
+1. Identify the EXACT problematic sentence or phrase from the clause
+   (if you cannot find it, the risk does not exist — do not flag it)
+2. Explain the concrete problem it creates
+3. Describe how it deviates from standard NDA practice
+
+If you can do all three → flag it at the appropriate level (LOW/MEDIUM/HIGH).
+If you can only do 2-3 but not quote specific text → do not flag it.
+If you cannot do any → do not flag it.
 
 IMPORTANT GUIDELINES:
 1. Be thorough but avoid false positives — not every clause has risks
@@ -128,6 +191,24 @@ IMPORTANT GUIDELINES:
 4. For each risk, explain: what's wrong, why it matters, and what to do about it
 5. A clause being favorable to one party is not inherently risky — look for provisions that are UNREASONABLY one-sided or potentially unenforceable
 6. Risk score should reflect the MOST SERIOUS individual risk, not an average
+7. This clause is ONE PART of a complete NDA. Other standard sections (Definitions,
+   Exclusions, Permitted Disclosures, Remedies, etc.) may address concerns you notice.
+   Do NOT flag a clause for missing a provision that is typically handled in a different
+   section of the NDA. The DOCUMENT CONTEXT above lists the sections present in this
+   document — use it.
+8. Before flagging a term as "undefined" or "ambiguous", check whether it appears in
+   the Defined Terms list in the DOCUMENT CONTEXT. If it does, do not flag it.
+
+==========================================================
+FINAL REMINDER — READ BEFORE YOU WRITE:
+Before identifying ANY risk, you MUST:
+1. Re-read the ENTIRE clause text below
+2. For each potential risk, find the EXACT sentence or phrase that creates the problem
+3. If you cannot find the problematic text, DO NOT flag the risk
+
+DO NOT say a provision is "missing" if it is present in the text.
+DO NOT say a term is "undefined" — check the DOCUMENT CONTEXT for defined terms.
+==========================================================
 
 DOCUMENT CONTEXT:
 {document_summary}

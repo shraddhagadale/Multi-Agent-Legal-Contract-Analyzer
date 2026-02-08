@@ -48,8 +48,18 @@ CLASSIFICATION GUIDANCE:
 - Distinguish between commonly confused NDA categories:
   - "Confidentiality" vs "Permitted Disclosures" — If the clause is about what IS confidential and the duty to protect it, it's Confidentiality. If it's about what is EXCLUDED from confidentiality obligations or what the receiving party is excused from protecting, it's Permitted Disclosures.
   - "Term and Duration" vs "Termination" — Term and Duration = how long the agreement lasts; Termination = how the agreement ends early and what happens after.
-  - "Obligations" vs "Confidentiality" — If the clause is about specific duties beyond just keeping information secret (e.g., standard of care, restricting employee access, security measures), it's Obligations. If it's purely about the duty not to disclose, it's Confidentiality.
+  - "Confidentiality" vs "Obligations" — If the clause's HEADING or PRIMARY function is about
+    non-disclosure, non-use, and protecting confidential information (even if it includes
+    sub-provisions about standard of care or representative access), it is Confidentiality.
+    The "Obligations" category is for clauses that impose ADDITIONAL duties beyond the core
+    confidentiality obligation (e.g., standalone security requirements, data handling procedures,
+    marking requirements). When in doubt between these two, prefer Confidentiality if the clause
+    is titled "Confidentiality Obligations" or "Non-Disclosure Obligations."
   - "Governing Law" vs "Dispute Resolution" — Governing Law = which law applies; Dispute Resolution = how disputes are actually resolved (arbitration, mediation, etc.)
+  - "No License" and "No Obligation" clauses — These are Miscellaneous provisions. They are
+    disclaimers/negative covenants that clarify what the NDA does NOT do. Do not classify them
+    as Confidentiality (even if they mention confidential information) or Termination (even if
+    they mention terminating discussions).
 - Confidence scoring:
   - 0.9-1.0: Clause clearly and unambiguously fits one category
   - 0.7-0.89: Clause primarily fits one category but touches on another

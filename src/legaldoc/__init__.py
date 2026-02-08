@@ -36,7 +36,6 @@ from legaldoc.agents import (
 )
 from legaldoc.utils import (
     LLMProviderManager,
-    PDFReportGenerator,
     get_config,
 )
 
@@ -51,6 +50,5 @@ __all__ = [
     "RiskDetectorAgent",
     # Utils
     "LLMProviderManager",
-    "PDFReportGenerator",
     "get_config",
 ]

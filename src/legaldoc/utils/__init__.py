@@ -16,7 +16,7 @@ from .llm_provider_manager import (
     AllProvidersFailedError,
 )
 from .load_env import get_config
-from .pdf_generator import PDFReportGenerator
+
 from .schemas import (
     Clause,
     SplitterResponse,
