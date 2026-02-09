@@ -70,18 +70,9 @@ class DocumentAnalyzerAgent(BaseAgent):
                 f"{p['name']} ({p['role']})" for p in result["parties"]
             )
 
-            # Include defined terms and sections for inter-clause context
-            defined_terms = result.get("defined_terms", [])
-            sections_present = result.get("sections_present", [])
-
-            defined_terms_str = ", ".join(defined_terms) if defined_terms else "None extracted"
-            sections_str = ", ".join(sections_present) if sections_present else "None extracted"
-
             result["formatted_summary"] = (
                 f"Document Type: {result['document_type']}\n"
                 f"Parties: {parties_str}\n"
-                f"Defined Terms: {defined_terms_str}\n"
-                f"Sections Present: {sections_str}\n"
                 f"Summary: {result['summary']}"
             )
 
@@ -91,20 +82,16 @@ class DocumentAnalyzerAgent(BaseAgent):
             logger.error(f"Document analysis failed: {e}")
             # Return minimal context rather than failing the pipeline
             return {
-                "document_type": "unknown",
+                "document_type": "Unknown",
                 "parties": [],
                 "effective_date": None,
                 "summary": "Document analysis could not be completed.",
                 "key_observations": [
                     "Automated analysis failed — manual review recommended"
                 ],
-                "defined_terms": [],
-                "sections_present": [],
                 "formatted_summary": (
-                    "Document Type: unknown\n"
+                    "Document Type: Unknown\n"
                     "Parties: Unknown\n"
-                    "Defined Terms: None extracted\n"
-                    "Sections Present: None extracted\n"
                     "Summary: Document analysis could not be completed."
                 ),
             }

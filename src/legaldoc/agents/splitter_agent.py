@@ -56,8 +56,7 @@ class ClauseSplitterAgent(BaseAgent):
                 "clause_id": str,
                 "clause_number": str,
                 "clause_title": str,
-                "clause_text": str,
-                "clause_type": str
+                "clause_text": str
             }
         
         Raises:

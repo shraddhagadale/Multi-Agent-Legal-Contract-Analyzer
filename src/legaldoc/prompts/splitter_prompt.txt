@@ -6,7 +6,7 @@ Analyze the provided NDA document and split it into distinct clauses. Each claus
 STEP-BY-STEP APPROACH (follow this reasoning process):
 1. First, identify all section headings and the overall structure of the NDA
 2. Group all related content under each section heading into a single clause
-3. Assign the most specific clause_type from the list below that matches each clause's content
+3. For each clause, extract: clause_id, clause_number, clause_title, and clause_text
 4. Verify that no content is lost or duplicated between clauses
 5. Confirm that sub-sections (e.g., 3.1, 3.2, 3.3) are kept together under their parent section
 
@@ -19,45 +19,19 @@ GUIDELINES:
 6. Ensure no important content is lost or duplicated
 7. Do not create separate clauses for paragraphs within the same section
 8. If a section has sub-sections (e.g., 3.1, 3.2, 3.3), keep them together under the parent section unless they address fundamentally different legal concepts
-9. Recitals/Whereas clauses should be grouped as a single "recitals" clause
-10. Signature blocks should be grouped as a single "execution" clause
+9. Recitals/Whereas clauses should be grouped as a single clause
+10. Signature blocks should be grouped as a single clause
 
-CLAUSE TYPES:
-Use the most specific applicable type from this list:
-
-Core NDA Clauses:
-- definitions — Defined terms, interpretation rules
-- confidentiality — Non-disclosure obligations, information protection
-- permitted_disclosures — Exclusions from confidentiality (public info, prior knowledge, compelled disclosure)
-- obligations — Receiving/disclosing party duties, standard of care
-- term_and_duration — Agreement duration, effective date, renewal
-- termination — Termination rights, events, post-termination duties
-- return_of_materials — Return or destruction of confidential information
-
-Enforcement Clauses:
-- remedies — Injunctive relief, damages, breach consequences
-- indemnification — Hold harmless, defense obligations (if present)
-- non_compete — Competition restrictions (if bundled with NDA)
-- non_solicitation — Employee/client solicitation restrictions (if bundled)
-
-Standard Legal Clauses:
-- governing_law — Choice of law, jurisdiction
-- dispute_resolution — Arbitration, mediation, litigation
-- notices — Communication requirements, delivery methods
-- assignment — Transfer of rights
-- amendments — Modification procedures
-- severability — Survival of valid provisions
-- entire_agreement — Integration clause
-- waiver — Waiver of rights provisions
-- recitals — Whereas/background clauses
-- execution — Signature blocks, counterparts
-- miscellaneous — Anything that does not fit any category above (last resort only)
+OUTPUT FORMAT:
+For each clause, provide:
+- clause_id: A unique identifier (e.g., "clause_1", "clause_2")
+- clause_number: The section/clause number as it appears in the document (e.g., "1", "2.1", "3.a")
+- clause_title: The heading or title of the clause
+- clause_text: The full verbatim text content of the clause
 
 IMPORTANT:
 - Be thorough and accurate — every sentence in the document must appear in exactly one clause
 - Maintain legal precision in preserving original text
-- Only use "miscellaneous" as a last resort when no other type fits
-- If a clause clearly spans multiple types, choose the dominant/primary type
 
 EXAMPLE:
 
@@ -73,8 +47,8 @@ For purposes of this Agreement, "Confidential Information" means any non-public 
 """
 
 Expected output:
-- Clause 1: clause_type="definitions", clause_title="Definitions", includes ALL of section 1
-- Clause 2: clause_type="confidentiality", clause_title="Confidentiality Obligations", includes ALL of 2.1, 2.2, and 2.3 together as one clause
+- Clause 1: clause_id="clause_1", clause_number="1", clause_title="Definitions", includes ALL of section 1
+- Clause 2: clause_id="clause_2", clause_number="2", clause_title="Confidentiality Obligations", includes ALL of 2.1, 2.2, and 2.3 together as one clause
 
 DOCUMENT TO ANALYZE:
 {document_text}

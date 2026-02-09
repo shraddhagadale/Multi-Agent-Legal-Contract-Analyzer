@@ -139,52 +139,7 @@ class LLMProviderManager:
         else:
             logger.error(f"{provider}: {error_msg[:200]}")
     
-    def chat(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.0,
-        max_tokens: Optional[int] = None,
-    ) -> str:
-        """
-        Send a chat request with automatic runtime fallback.
-        
-        Args:
-            messages: List of message dicts with 'role' and 'content'
-            temperature: Sampling temperature (0-1)
-            max_tokens: Maximum tokens in response
-        
-        Returns:
-            str: The model's response text
-        
-        Raises:
-            AllProvidersFailedError: If all providers fail
-        """
-        errors = []
-        
-        # Try OpenAI first if available
-        if self._providers_available["openai"]:
-            try:
-                return self._call_openai_with_retry(messages, temperature, max_tokens)
-            except Exception as e:
-                error_msg = f"OpenAI failed: {str(e)}"
-                errors.append(error_msg)
-                self._log_error("OpenAI", str(e))
-                if self._providers_available["gemini"]:
-                    logger.info("Falling back to Gemini...")
-        
-        # Fallback to Gemini
-        if self._providers_available["gemini"]:
-            try:
-                return self._call_gemini_with_retry(messages, temperature, max_tokens)
-            except Exception as e:
-                error_msg = f"Gemini failed: {str(e)}"
-                errors.append(error_msg)
-                self._log_error("Gemini", str(e))
-        
-        # All providers failed
-        raise AllProvidersFailedError(
-            f"All LLM providers failed:\n" + "\n".join(errors)
-        )
+
     
     def structured_chat(
         self,
@@ -242,6 +197,12 @@ class LLMProviderManager:
             f"All LLM providers failed for structured output:\n" + "\n".join(errors)
         )
     
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=60),
+        retry=retry_if_exception_type((RateLimitError,)),
+        before_sleep=before_sleep_log(logger, logging.WARNING)
+    )
     def _call_openai_structured(
         self,
         messages: List[Dict[str, str]],
@@ -250,66 +211,17 @@ class LLMProviderManager:
         max_retries: int,
     ) -> T:
         """Call OpenAI with Instructor for structured output."""
-        # Patch client with Instructor
-        client = instructor.from_openai(self._openai_client)
-        
-        return client.chat.completions.create(
-            model=self.openai_model,
-            messages=messages,
-            response_model=response_model,
-            temperature=temperature,
-            max_retries=max_retries,
-        )
-    
-    def _call_gemini_structured(
-        self,
-        messages: List[Dict[str, str]],
-        response_model: Type[T],
-        temperature: float,
-        max_retries: int,
-    ) -> T:
-        """Call Gemini with Instructor for structured output."""
-        # Patch client with Instructor
-        client = instructor.from_gemini(
-            client=self._gemini_client,
-            mode=instructor.Mode.GEMINI_JSON,
-        )
-        
-        # Convert messages to Gemini format
-        contents = self._convert_messages_to_gemini(messages)
-        
-        return client.chat.completions.create(
-            model=self.google_model,
-            messages=[{"role": "user", "content": contents}],
-            response_model=response_model,
-            max_retries=max_retries,
-        )
-    
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=60),
-        retry=retry_if_exception_type((RateLimitError,)),
-        before_sleep=before_sleep_log(logger, logging.WARNING)
-    )
-    def _call_openai_with_retry(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float,
-        max_tokens: Optional[int]
-    ) -> str:
-        """Call OpenAI API with retry logic for rate limits."""
         try:
-            params = {
-                "model": self.openai_model,
-                "messages": messages,
-                "temperature": temperature,
-            }
-            if max_tokens:
-                params["max_tokens"] = max_tokens
+            # Patch client with Instructor
+            client = instructor.from_openai(self._openai_client)
             
-            response = self._openai_client.chat.completions.create(**params)
-            return response.choices[0].message.content
-            
+            return client.chat.completions.create(
+                model=self.openai_model,
+                messages=messages,
+                response_model=response_model,
+                temperature=temperature,
+                max_retries=max_retries,
+            )
         except openai.RateLimitError as e:
             raise RateLimitError(f"OpenAI rate limit: {e}")
         except openai.APIError as e:
@@ -323,35 +235,37 @@ class LLMProviderManager:
         retry=retry_if_exception_type((RateLimitError,)),
         before_sleep=before_sleep_log(logger, logging.WARNING)
     )
-    def _call_gemini_with_retry(
+    def _call_gemini_structured(
         self,
         messages: List[Dict[str, str]],
+        response_model: Type[T],
         temperature: float,
-        max_tokens: Optional[int]
-    ) -> str:
-        """Call Gemini API with retry logic for rate limits."""
+        max_retries: int,
+    ) -> T:
+        """Call Gemini with Instructor for structured output."""
         try:
-            # Convert OpenAI-style messages to Gemini format
-            contents = self._convert_messages_to_gemini(messages)
-            
-            # Build config
-            config = types.GenerateContentConfig(temperature=temperature)
-            if max_tokens:
-                config.max_output_tokens = max_tokens
-            
-            response = self._gemini_client.models.generate_content(
-                model=self.google_model,
-                contents=contents,
-                config=config
+            # Patch client with Instructor
+            client = instructor.from_gemini(
+                client=self._gemini_client,
+                mode=instructor.Mode.GEMINI_JSON,
             )
             
-            return response.text
+            # Convert messages to Gemini format
+            contents = self._convert_messages_to_gemini(messages)
             
+            return client.chat.completions.create(
+                model=self.google_model,
+                messages=[{"role": "user", "content": contents}],
+                response_model=response_model,
+                max_retries=max_retries,
+            )
         except Exception as e:
             error_msg = str(e).lower()
             if "quota" in error_msg or "rate" in error_msg or "429" in error_msg:
                 raise RateLimitError(f"Gemini rate limit: {e}")
             raise APIError(f"Gemini API error: {e}")
+    
+
     
     def _convert_messages_to_gemini(self, messages: List[Dict[str, str]]) -> str:
         """
@@ -376,14 +290,4 @@ class LLMProviderManager:
         """Return the name of the currently active provider."""
         return self.active_provider or "unknown"
     
-    def is_openai_available(self) -> bool:
-        """Check if OpenAI is available."""
-        return self._providers_available.get("openai", False)
-    
-    def is_gemini_available(self) -> bool:
-        """Check if Gemini is available."""
-        return self._providers_available.get("gemini", False)
-    
-    def get_available_providers(self) -> List[str]:
-        """Return list of available provider names."""
-        return [p for p, available in self._providers_available.items() if available]
+

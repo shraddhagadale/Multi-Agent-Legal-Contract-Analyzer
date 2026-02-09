@@ -14,30 +14,7 @@ from pydantic import BaseModel, Field
 # Shared Type Definitions
 # =============================================================================
 
-ClauseType = Literal[
-    "definitions",
-    "confidentiality",
-    "permitted_disclosures",
-    "obligations",
-    "term_and_duration",
-    "termination",
-    "return_of_materials",
-    "remedies",
-    "indemnification",
-    "non_compete",
-    "non_solicitation",
-    "governing_law",
-    "dispute_resolution",
-    "notices",
-    "assignment",
-    "amendments",
-    "severability",
-    "entire_agreement",
-    "waiver",
-    "recitals",
-    "execution",
-    "miscellaneous",
-]
+
 
 CategoryType = Literal[
     "Definitions",
@@ -68,7 +45,7 @@ RiskLevel = Literal["NONE", "LOW", "MEDIUM", "HIGH"]
 
 Severity = Literal["LOW", "MEDIUM", "HIGH"]
 
-NDAType = Literal["mutual_nda", "unilateral_nda", "unknown"]
+NDAType = Literal["Mutual_NDA", "Unilateral_NDA", "Unknown"]
 
 
 # =============================================================================
@@ -111,20 +88,7 @@ class DocumentAnalysis(BaseModel):
             "(e.g., 'unilateral NDA favoring Company X', 'missing standard exclusions')"
         )
     )
-    defined_terms: List[str] = Field(
-        default_factory=list,
-        description=(
-            "List of terms explicitly defined in the document "
-            "(e.g., 'Confidential Information', 'Affiliate', 'Representatives', 'Purpose')"
-        )
-    )
-    sections_present: List[str] = Field(
-        default_factory=list,
-        description=(
-            "List of major sections/clause types present in the document "
-            "(e.g., 'Definitions', 'Exclusions', 'Permitted Disclosures', 'Remedies')"
-        )
-    )
+
 
 
 # =============================================================================
@@ -146,9 +110,6 @@ class Clause(BaseModel):
     clause_text: str = Field(
         description="The full verbatim text content of the clause"
     )
-    clause_type: ClauseType = Field(
-        description="The legal category type of the clause"
-    )
 
 
 class SplitterResponse(BaseModel):
@@ -158,50 +119,6 @@ class SplitterResponse(BaseModel):
         description="List of all clauses extracted from the document"
     )
 
-
-# =============================================================================
-# Splitter Verification Agent Schemas (for Section 6)
-# =============================================================================
-
-class VerificationIssue(BaseModel):
-    """A single issue found during split verification."""
-
-    issue_type: Literal[
-        "missing_content",
-        "duplicate_content",
-        "incorrect_split",
-        "wrong_clause_type",
-        "merged_concepts",
-    ] = Field(
-        description="Type of issue found"
-    )
-    description: str = Field(
-        description="Description of what is wrong"
-    )
-    affected_clause_ids: List[str] = Field(
-        description="IDs of clauses affected by this issue"
-    )
-    suggestion: str = Field(
-        description="How to fix this issue"
-    )
-
-
-class SplitterVerificationResult(BaseModel):
-    """Response schema for the Splitter Verification Agent."""
-
-    is_valid: bool = Field(
-        description="Whether the split is acceptable (no critical issues)"
-    )
-    total_clauses_reviewed: int = Field(
-        description="Number of clauses reviewed"
-    )
-    issues: List[VerificationIssue] = Field(
-        default_factory=list,
-        description="List of issues found in the split"
-    )
-    summary: str = Field(
-        description="Brief summary of verification result"
-    )
 
 
 # =============================================================================

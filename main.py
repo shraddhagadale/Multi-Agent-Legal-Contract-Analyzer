@@ -71,7 +71,7 @@ class LegalDocAI:
         self.classifier_agent = ClauseClassifierAgent(self.llm_manager)
         self.risk_detector_agent = RiskDetectorAgent(self.llm_manager)
 
-    def analyze_document(self, document_text: str, verbose: bool = False) -> Dict[str, Any]:
+    def process_document(self, document_text: str, verbose: bool = False) -> Dict[str, Any]:
         """
         Analyze a legal document through the full pipeline.
         
@@ -117,7 +117,7 @@ class LegalDocAI:
                 ctext_preview = c.get('clause_text', '')[:150].replace('\n', ' ')
                 if len(c.get('clause_text', '')) > 150:
                     ctext_preview += "..."
-                print(f"  [{c.get('clause_id', '?')}] {c.get('clause_title', 'Untitled')} ({c.get('clause_type', '?')})")
+                print(f"  [{c.get('clause_id', '?')}] {c.get('clause_title', 'Untitled')}")
                 print(f"    Text: {ctext_preview}")
 
         # Step 2: Classify clauses (with document context)
@@ -314,7 +314,7 @@ def main():
     # Initialize and run analysis
     try:
         legal_ai = LegalDocAI()
-        results = legal_ai.analyze_document(document_text, verbose=args.verbose)
+        results = legal_ai.process_document(document_text, verbose=args.verbose)
         
         # Display Console Summary
         legal_ai.display_console_summary(results)
