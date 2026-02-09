@@ -26,7 +26,7 @@ from typing import Dict, Any, List
 
 from dotenv import load_dotenv
 
-from legaldoc.utils import LLMProviderManager
+from legaldoc.utils import LLMClient
 from legaldoc.agents import (
     DocumentAnalyzerAgent,
     ClauseSplitterAgent,
@@ -80,15 +80,15 @@ def subheader(title: str) -> None:
 # ── Agent Runners ────────────────────────────────────────────────────────────
 
 def init_system():
-    """Initialize the LLM manager and all agents."""
-    llm_manager = LLMProviderManager()
+    """Initialize the LLM client and all agents."""
+    llm_client = LLMClient()
     agents = {
-        "analyzer": DocumentAnalyzerAgent(llm_manager),
-        "splitter": ClauseSplitterAgent(llm_manager),
-        "classifier": ClauseClassifierAgent(llm_manager),
-        "risk": RiskDetectorAgent(llm_manager),
+        "analyzer": DocumentAnalyzerAgent(llm_client),
+        "splitter": ClauseSplitterAgent(llm_client),
+        "classifier": ClauseClassifierAgent(llm_client),
+        "risk": RiskDetectorAgent(llm_client),
     }
-    return llm_manager, agents
+    return llm_client, agents
 
 
 def run_analyzer(agents: dict, document_text: str) -> Dict[str, Any]:
@@ -467,8 +467,8 @@ def main():
 
     # Initialize system
     try:
-        llm_manager, agents = init_system()
-        print(f"Provider: {llm_manager.get_provider_name()}\n")
+        llm_client, agents = init_system()
+        print(f"Model: {llm_client.get_model_name()}\n")
     except Exception as e:
         sys.exit(f"Failed to initialize: {e}")
 

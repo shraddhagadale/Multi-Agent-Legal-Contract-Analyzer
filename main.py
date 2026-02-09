@@ -24,7 +24,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 from dotenv import load_dotenv
 
-from legaldoc.utils import LLMProviderManager
+from legaldoc.utils import LLMClient
 from legaldoc.agents import (
     DocumentAnalyzerAgent,
     ClauseSplitterAgent,
@@ -46,30 +46,28 @@ class LegalDocAI:
     2. ClauseClassifierAgent - Classifies clauses by category
     3. RiskDetectorAgent - Detects risks in clauses
     
-    Uses LLMProviderManager for automatic OpenAI/Gemini fallback.
+    Uses LLMClient for OpenAI-powered analysis.
     """
     
     def __init__(self):
         """
-        Initialize LegalDocAI with Auto-Fallback Support.
+        Initialize LegalDocAI with LLMClient.
         
-        Uses LLMProviderManager to:
-        1. Configure OpenAI (primary) based on API key presence
-        2. Configure Gemini (fallback) based on API key presence
-        3. Fall back automatically at runtime if primary fails
+        Sets up the OpenAI-powered LLM client and initializes
+        all analysis agents.
         """
         try:
-            # Initialize LLM manager (handles provider configuration)
-            self.llm_manager = LLMProviderManager()
-            
+            # Initialize LLM client
+            self.llm_client = LLMClient()
+
         except Exception as e:
             sys.exit(f"FATAL ERROR: {e}")
 
-        # Initialize agents with the LLM manager
-        self.document_analyzer = DocumentAnalyzerAgent(self.llm_manager)
-        self.splitter_agent = ClauseSplitterAgent(self.llm_manager)
-        self.classifier_agent = ClauseClassifierAgent(self.llm_manager)
-        self.risk_detector_agent = RiskDetectorAgent(self.llm_manager)
+        # Initialize agents with the LLM client
+        self.document_analyzer = DocumentAnalyzerAgent(self.llm_client)
+        self.splitter_agent = ClauseSplitterAgent(self.llm_client)
+        self.classifier_agent = ClauseClassifierAgent(self.llm_client)
+        self.risk_detector_agent = RiskDetectorAgent(self.llm_client)
 
     def process_document(self, document_text: str, verbose: bool = False) -> Dict[str, Any]:
         """
@@ -181,7 +179,7 @@ class LegalDocAI:
             "high_risk_clauses": high_risk_clauses,
             "medium_risk_clauses": medium_risk_clauses,
             "low_risk_clauses": low_risk_clauses,
-            "provider_used": self.llm_manager.get_provider_name()
+            "model_used": self.llm_client.get_model_name()
         }
         print("Done")
         
@@ -202,6 +200,8 @@ class LegalDocAI:
         BOLD = "\033[1m"
         RESET = "\033[0m"
         HR = "-" * 60
+        
+        print(f"Model: {results.get('model_used', 'Unknown')}")
         
         print(f"\n{BOLD}=== ANALYSIS SUMMARY ==={RESET}")
         print(f"Total Clauses: {results.get('total_clauses', 0)}")
@@ -247,8 +247,7 @@ class LegalDocAI:
             print(f"{YELLOW}{BOLD}>>> MEDIUM RISK CLAUSES ({len(medium_risks)}) <<<{RESET}")
             for item in medium_risks:
                 print_risk_block(item, YELLOW)
-        
-        print("\n")
+    
 
 
 

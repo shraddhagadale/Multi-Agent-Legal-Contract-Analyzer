@@ -2,20 +2,18 @@
 Utilities package for LegalDoc AI
 
 This package provides:
-- LLMProviderManager: Unified LLM interface with OpenAI/Gemini fallback
-- PDFReportGenerator: PDF report generation for analysis results
+- LLMClient: OpenAI client with structured outputs and retries
 - Schemas: Pydantic models for structured LLM outputs
 - Configuration utilities
 """
 
-from .llm_provider_manager import (
-    LLMProviderManager,
-    LLMProviderError,
+from .llm_client import (
+    LLMClient,
+    LLMProviderManager,  # Backward compatibility alias
+    LLMError,
     RateLimitError,
     APIError,
-    AllProvidersFailedError,
 )
-from .load_env import get_config
 
 from .schemas import (
     Clause,
@@ -26,16 +24,12 @@ from .schemas import (
 )
 
 __all__ = [
-    # LLM Management
-    "LLMProviderManager",
-    "LLMProviderError",
+    # LLM Client
+    "LLMClient",
+    "LLMProviderManager",  # Backward compatibility
+    "LLMError",
     "RateLimitError",
     "APIError",
-    "AllProvidersFailedError",
-    # PDF Generation
-    "PDFReportGenerator",
-    # Configuration
-    "get_config",
     # Schemas
     "Clause",
     "SplitterResponse",

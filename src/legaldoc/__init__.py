@@ -2,20 +2,19 @@
 LegalDoc AI - Multi-Agent Legal Document Analysis System
 
 A sophisticated AI-powered system for analyzing legal documents (particularly NDAs)
-using a multi-agent architecture with automatic LLM provider fallback.
+using a multi-agent architecture powered by OpenAI.
 
 Features:
 - Document type detection (mutual/unilateral NDA)
 - Clause extraction and splitting
 - Legal category classification
 - Risk detection and assessment
-- PDF report generation
 
 Usage:
-    from legaldoc.utils import LLMProviderManager
+    from legaldoc.utils import LLMClient
     from legaldoc.agents import DocumentAnalyzerAgent, ClauseSplitterAgent
     
-    llm = LLMProviderManager()
+    llm = LLMClient()
     analyzer = DocumentAnalyzerAgent(llm)
     context = analyzer.analyze_document(document_text)
     
@@ -35,8 +34,8 @@ from legaldoc.agents import (
     RiskDetectorAgent,
 )
 from legaldoc.utils import (
-    LLMProviderManager,
-    get_config,
+    LLMClient,
+    LLMProviderManager,  # Backward compatibility alias
 )
 
 __all__ = [
@@ -49,6 +48,6 @@ __all__ = [
     "ClauseClassifierAgent",
     "RiskDetectorAgent",
     # Utils
-    "LLMProviderManager",
-    "get_config",
+    "LLMClient",
+    "LLMProviderManager",  # Backward compatibility
 ]

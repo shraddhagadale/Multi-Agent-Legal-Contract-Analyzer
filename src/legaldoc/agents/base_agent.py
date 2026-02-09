@@ -11,7 +11,7 @@ from typing import Dict, Any, List, Type, TypeVar, ClassVar
 
 from pydantic import BaseModel
 
-from legaldoc.utils.llm_provider_manager import LLMProviderManager
+from legaldoc.utils.llm_client import LLMClient
 
 
 # Generic type for Pydantic response models
@@ -41,14 +41,14 @@ class BaseAgent(ABC):
     # Path to prompts directory (resolved once)
     _prompts_dir: ClassVar[Path] = Path(__file__).parent.parent / "prompts"
     
-    def __init__(self, llm_manager: LLMProviderManager) -> None:
+    def __init__(self, llm_client: LLMClient) -> None:
         """
         Initialize the base agent.
         
         Args:
-            llm_manager: LLMProviderManager instance for making LLM calls
+            llm_client: LLMClient instance for making LLM calls
         """
-        self.llm = llm_manager
+        self.llm = llm_client
     
     @property
     @abstractmethod

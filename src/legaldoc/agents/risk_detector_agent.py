@@ -5,7 +5,6 @@ This agent analyzes legal clauses to identify potential risks, red flags,
 and problematic language in NDA agreements.
 """
 
-import re
 import logging
 from typing import Dict, Any, List, Optional
 
