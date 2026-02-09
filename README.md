@@ -1,6 +1,6 @@
 # Multi-Agent Legal Contract Analyzer
 
-A multi-agent AI system for analyzing legal documents, with a focus on Non-Disclosure Agreements (NDAs). The system intelligently extracts operative clauses, classifies them by category, detects potential risks, and provides actionable recommendations.
+A multi-agent AI system for analyzing legal documents, with a focus on Non-Disclosure Agreements (NDAs). The system extracts operative clauses, classifies them by category, detects potential risks, and provides actionable recommendations.
 
 ## Table of Contents
 
@@ -11,7 +11,6 @@ A multi-agent AI system for analyzing legal documents, with a focus on Non-Discl
 - [Configuration](#configuration)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
-- [Supported Document Types](#supported-document-types)
 - [Development](#development)
 - [License](#license)
 
@@ -19,29 +18,59 @@ A multi-agent AI system for analyzing legal documents, with a focus on Non-Discl
 
 The Multi-Agent Legal Contract Analyzer uses a pipeline of specialized AI agents to process and analyze legal documents:
 
-1. **Document Analyzer Agent**: Detects the document type (e.g., Unilateral vs. Mutual NDA), identifies parties, and provides a high-level summary.
-2. **Clause Splitter Agent**: Parses the document and breaks it down into individual logical **operative clauses** (skipping preamble, recitals, and boilerplate introduction).
-3. **Clause Classifier Agent**: Categorizes each clause by type (e.g., Confidentiality, Term, Obligations, Indemnification).
-4. **Risk Detector Agent**: Evaluates each clause for potential legal risks, assigns severity levels, and provides specific recommendations for safer alternatives.
+| Agent | Purpose |
+|-------|---------|
+| Document Analyzer | Identifies document type (Mutual/Unilateral NDA), parties, and provides summary |
+| Clause Splitter | Extracts operative clauses, skipping preamble and recitals |
+| Clause Classifier | Categorizes clauses (Confidentiality, Term, Indemnification, etc.) |
+| Risk Detector | Evaluates risks, assigns severity levels, and provides recommendations |
 
 ## Features
 
-- **Operative Clause Extraction**: Intelligently identifies and extracts legally binding clauses while ignoring non-operative text like recitals and preambles.
-- **Automated Summary & Metadata**: Automatically identifies parties and provides a concise document summary.
-- **Multi-Category Classification**: Classifies clauses into standard legal categories.
-- **Risk Assessment**: Assigns risk levels (HIGH, MEDIUM, LOW) with detailed explanations.
-- **Actionable Recommendations**: Provides specific suggestions for improving problematic clauses.
-- **OpenAI Integration**: Powered by OpenAI models (e.g., gpt-4o-mini) with structured output handling.
-- **Command-Line Interface**: Simple CLI for easy integration into workflows.
+- **Operative Clause Extraction**: Focuses on legally binding sections, ignoring preamble and recitals
+- **Document Context Analysis**: Automatically identifies parties, agreement type, and key terms
+- **Multi-Category Classification**: Classifies clauses into standard legal categories with confidence scores
+- **Risk Assessment**: Assigns risk levels (HIGH, MEDIUM, LOW) with detailed explanations
+- **Actionable Recommendations**: Provides specific suggestions for improving problematic clauses
+- **Structured Outputs**: Uses Pydantic models for type-safe, validated LLM responses
+- **Retry Logic**: Built-in exponential backoff for API resilience
+
+## Architecture
+
+```
+                    +-------------------+
+                    |   Legal Document  |
+                    +--------+----------+
+                             |
+                    +--------v----------+
+                    | Document Analyzer |
+                    +--------+----------+
+                             |
+                    +--------v----------+
+                    |  Clause Splitter  |
+                    +--------+----------+
+                             |
+                    +--------v----------+
+                    | Clause Classifier |
+                    +--------+----------+
+                             |
+                    +--------v----------+
+                    |   Risk Detector   |
+                    +--------+----------+
+                             |
+                    +--------v----------+
+                    |  Analysis Report  |
+                    +-------------------+
+```
 
 ## Installation
 
 ### Prerequisites
 
 - Python 3.10 or higher
-- pip package manager
+- OpenAI API key
 
-### Steps
+### Setup
 
 1. Clone the repository:
 
@@ -50,23 +79,17 @@ git clone https://github.com/shraddhagadale/Multi-Agent-Legal-Contract-Analyzer.
 cd Multi-Agent-Legal-Contract-Analyzer
 ```
 
-2. Create and activate a virtual environment (recommended):
+2. Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-3. Install the package and dependencies:
+3. Install the package:
 
 ```bash
 pip install -e .
-```
-
-For development dependencies:
-
-```bash
-pip install -e ".[dev]"
 ```
 
 ## Configuration
@@ -77,124 +100,90 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-2. Edit `.env` and add your OpenAI API key:
+2. Add your OpenAI API key to `.env`:
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL_NAME=gpt-4o-mini
-```
+OPENAI_MODEL_NAME=gpt-5
 
 ## Usage
 
 ### Command Line Interface
 
-Analyze a document and view the results in the console:
+Analyze a document:
 
 ```bash
 python main.py path/to/document.txt
 ```
 
-Run with verbose output to see each agent's step:
+Run with verbose output to see each agent's reasoning:
 
 ```bash
 python main.py path/to/document.txt -v
 ```
 
-View help and available options:
+View help:
 
 ```bash
 python main.py --help
 ```
 
-### Analysis Results Structure
+### Debug Runner
 
-The analysis results include:
+Test individual agents for development and prompt iteration:
 
-| Key | Description |
-|-----|-------------|
-| `total_clauses` | Total number of operative clauses identified |
-| `clauses` | List of extracted operative clause texts |
-| `classifications` | Classification results for each clause |
-| `risk_assessments` | Risk analysis for each clause |
-| `high_risk_clauses` | Clauses flagged as high risk |
-| `medium_risk_clauses` | Clauses flagged as medium risk |
-| `low_risk_clauses` | Clauses flagged as low risk |
-| `model_used` | LLM model used for analysis |
+```bash
+python debug_runner.py files/sample.txt --agent splitter
+python debug_runner.py files/sample.txt --agent classifier
+python debug_runner.py files/sample.txt --agent risk
+python debug_runner.py files/sample.txt --all
+```
+
+### Sample Output
+
+```
+=== ANALYSIS SUMMARY ===
+Total Clauses: 3
+High Risks:    1
+Medium Risks:  1
+Low Risks:     1
+
+>>> HIGH RISK CLAUSES (1) <<<
+Clause 3: Term and Termination
+
+Identified Risks:
+  - Perpetual Confidentiality: Obligations survive indefinitely.
+  - Indefinite Term: Agreement remains in effect in perpetuity.
+
+Recommendations:
+  - Limit confidentiality obligations to 3-5 years for non-trade-secret information.
+  - Specify a clear term with renewal options.
+```
 
 ## Project Structure
 
 ```
 Multi-Agent-Legal-Contract-Analyzer/
-├── main.py                      # CLI entry point and orchestrator
-├── debug_runner.py              # Tool for debugging individual agents
-├── pyproject.toml               # Project configuration and dependencies
-├── .env.example                 # Environment variables template
-├── README.md                    # Project documentation
-├── files/                       # Input directory for documents
-└── src/
-    └── legaldoc/
-        ├── __init__.py
-        ├── agents/              # AI agent implementations
-        │   ├── __init__.py
-        │   ├── base_agent.py           # Base agent class
-        │   ├── document_analyzer_agent.py # Document context agent
-        │   ├── splitter_agent.py       # Clause extraction agent
-        │   ├── classifier_agent.py     # Clause classification agent
-        │   └── risk_detector_agent.py  # Risk assessment agent
-        ├── prompts/             # Agent prompt templates
-        │   ├── analyzer_prompt.txt
-        │   ├── splitter_prompt.txt
-        │   ├── classifier_prompt.txt
-        │   └── risk_detector_prompt.txt
-        └── utils/               # Utility modules
-            ├── __init__.py
-            ├── llm_client.py            # OpenAI client abstraction
-            ├── schemas.py               # Pydantic data models
-            └── load_env.py              # Environment configuration
+├── main.py                          # CLI entry point and orchestrator
+├── debug_runner.py                  # Agent-by-agent debugging utility
+├── pyproject.toml                   # Project configuration
+├── .env.example                     # Environment template
+├── files/                           # Input documents directory
+└── src/legaldoc/
+    ├── __init__.py
+    ├── agents/
+    │   ├── base_agent.py            # Abstract base class for agents
+    │   ├── document_analyzer_agent.py
+    │   ├── splitter_agent.py
+    │   ├── classifier_agent.py
+    │   └── risk_detector_agent.py
+    ├── prompts/
+    │   ├── analyzer_prompt.txt
+    │   ├── splitter_prompt.txt
+    │   ├── classifier_prompt.txt
+    │   └── risk_detector_prompt.txt
+    └── utils/
+        ├── llm_client.py            # OpenAI client with structured outputs
+        ├── schemas.py               # Pydantic data models
+        └── load_env.py              # Environment configuration
 ```
-
-## Supported Document Types
-
-The analyzer is optimized for:
-- Non-Disclosure Agreements (NDAs)
-
-But can be extended for:
-- Employment Agreements
-- Consulting Agreements
-- Master Service Agreements (MSAs)
-
-## Development
-
-### Running Tests
-
-```bash
-pytest
-```
-
-### Code Quality
-
-Lint the codebase:
-
-```bash
-ruff check .
-```
-
-Type checking:
-
-```bash
-mypy src/
-```
-
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| openai | OpenAI API client |
-| python-dotenv | Environment variable management |
-| pydantic | Data validation and schemas |
-| instructor | Structured LLM outputs |
-| tenacity | Retry logic and resilience |
-
-## License
-
-This project is licensed under the MIT License.

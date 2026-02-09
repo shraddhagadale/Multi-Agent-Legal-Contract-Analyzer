@@ -1,31 +1,5 @@
 MUTUAL NON-DISCLOSURE AGREEMENT
 
-RISK ANNOTATIONS (applies to this Risky version only)
-- Clause 2.1 — One-sided use right
-  - Risk level: HIGH
-  - Primary concern: Breaks mutuality by giving one party broader use rights over the other’s info.
-  - Suggestion: Require both parties to use Confidential Information only for the Purpose (no unilateral carve-out).
-- Clause 3.4 — Weakened standard exclusion
-  - Risk level: MEDIUM
-  - Primary concern: Raises proof burden, making the exclusion hard to rely on in practice.
-  - Suggestion: Use a reasonable evidence standard (e.g., “competent evidence”) consistent with other exclusions.
-- Clause 4.1 — Missing compelled disclosure notice/protection
-  - Risk level: HIGH
-  - Primary concern: No notice/cooperation prevents the Disclosing Party from seeking to limit disclosure.
-  - Suggestion: Add prompt (legally permitted) notice + cooperation to seek protective order; limit disclosure scope.
-- Clause 5.2 — Perpetual confidentiality term
-  - Risk level: HIGH
-  - Primary concern: Perpetual obligation for non-trade-secret info is often unreasonable/overbroad.
-  - Suggestion: Use a fixed period (e.g., 3–5 years) for non-trade-secrets; keep “as long as trade secret” only for trade secrets.
-- Clause 6 — No return/destruction timeline or certification
-  - Risk level: MEDIUM
-  - Primary concern: No deadline/certification reduces practical enforceability and auditability.
-  - Suggestion: Add a return/destruction deadline (e.g., 10 business days) + written certification; allow limited archival/legal-hold copy.
-- Clause 7 — Disproportionate liquidated damages
-  - Risk level: HIGH
-  - Primary concern: Large per-breach liquidated damages can function as a penalty and create outsized exposure.
-  - Suggestion: Remove fixed liquidated damages; or tie to actual harm with reasonable cap and clear justification.
-
 This Mutual Non-Disclosure Agreement (this "Agreement") is entered into as of [Effective Date] (the "Effective Date") by and between:
 
 (1) Alpha Technologies, Inc., a Delaware corporation, with its principal place of business at [Address] ("Alpha"); and
