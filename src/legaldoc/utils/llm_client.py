@@ -63,7 +63,7 @@ class LLMClient:
     def __init__(self):
         """Initialize the LLM client with OpenAI."""
         self.api_key = os.getenv("OPENAI_API_KEY")
-        self.model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o-mini")
+        self.model = os.getenv("OPENAI_MODEL_NAME", "gpt-4o")
         
         if not self.api_key:
             raise LLMError(
@@ -132,5 +132,3 @@ class LLMClient:
         return self.model
 
 
-# Backward compatibility alias
-LLMProviderManager = LLMClient

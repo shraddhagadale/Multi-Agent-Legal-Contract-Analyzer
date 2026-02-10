@@ -22,9 +22,9 @@ def get_config() -> Dict[str, Optional[str]]:
     Returns:
         Dict with configuration values:
         - OPENAI_API_KEY: OpenAI API key
-        - OPENAI_MODEL_NAME: OpenAI model to use (default: gpt-4o-mini)
+        - OPENAI_MODEL_NAME: OpenAI model to use (default: gpt-4o)
     """
     return {
         "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
-        "OPENAI_MODEL_NAME": os.getenv("OPENAI_MODEL_NAME", "gpt-4o-mini"),
+        "OPENAI_MODEL_NAME": os.getenv("OPENAI_MODEL_NAME", "gpt-4o"),
     }

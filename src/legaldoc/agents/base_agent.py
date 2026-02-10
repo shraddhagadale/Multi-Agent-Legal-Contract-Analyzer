@@ -148,5 +148,6 @@ class BaseAgent(ABC):
         messages = self._build_messages(user_prompt)
         return self.llm.structured_chat(
             messages=messages,
-            response_model=response_model
+            response_model=response_model,
+            temperature=0.0
         )

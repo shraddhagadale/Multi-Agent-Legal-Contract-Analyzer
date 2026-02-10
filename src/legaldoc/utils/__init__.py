@@ -9,7 +9,6 @@ This package provides:
 
 from .llm_client import (
     LLMClient,
-    LLMProviderManager,  # Backward compatibility alias
     LLMError,
     RateLimitError,
     APIError,
@@ -26,7 +25,6 @@ from .schemas import (
 __all__ = [
     # LLM Client
     "LLMClient",
-    "LLMProviderManager",  # Backward compatibility
     "LLMError",
     "RateLimitError",
     "APIError",

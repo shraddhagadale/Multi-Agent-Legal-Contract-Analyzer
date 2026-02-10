@@ -27,10 +27,11 @@ The Multi-Agent Legal Contract Analyzer uses a pipeline of specialized AI agents
 
 ## Features
 
-- **Operative Clause Extraction**: Focuses on legally binding sections, ignoring preamble and recitals
+- **Operative Clause Extraction**: Extracts all legally binding sections verbatim, preserving formatting and sub-section groupings
 - **Document Context Analysis**: Automatically identifies parties, agreement type, and key terms
 - **Multi-Category Classification**: Classifies clauses into standard legal categories with confidence scores
 - **Risk Assessment**: Assigns risk levels (HIGH, MEDIUM, LOW) with detailed explanations
+- **Prompt-Engineered Risk Detection**: Uses core risk principles (asymmetry, uncapped liability, perpetuity, venue/jurisdiction, broad definitions) with few-shot examples for calibrated analysis
 - **Actionable Recommendations**: Provides specific suggestions for improving problematic clauses
 - **Structured Outputs**: Uses Pydantic models for type-safe, validated LLM responses
 - **Retry Logic**: Built-in exponential backoff for API resilience
@@ -104,7 +105,8 @@ cp .env.example .env
 
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL_NAME=gpt-5
+OPENAI_MODEL_NAME=gpt-4o
+```
 
 ## Usage
 

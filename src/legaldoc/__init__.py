@@ -35,7 +35,6 @@ from legaldoc.agents import (
 )
 from legaldoc.utils import (
     LLMClient,
-    LLMProviderManager,  # Backward compatibility alias
 )
 
 __all__ = [
@@ -49,5 +48,4 @@ __all__ = [
     "RiskDetectorAgent",
     # Utils
     "LLMClient",
-    "LLMProviderManager",  # Backward compatibility
 ]

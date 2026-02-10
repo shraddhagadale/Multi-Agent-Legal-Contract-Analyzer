@@ -155,13 +155,13 @@ class LegalDocAI:
                         desc_preview = desc[:100]
                         if len(desc) > 100:
                             desc_preview += "..."
-                        print(f"    \u26a0 {risk.get('risk_type', '?')}: {desc_preview}")
+                        print(f"    ⚠ {risk.get('risk_type', '?')}: {desc_preview}")
                 if r.get('recommendations'):
                     for rec in r['recommendations']:
                         rec_preview = rec[:100]
                         if len(rec) > 100:
                             rec_preview += "..."
-                        print(f"    \u2192 {rec_preview}")
+                        print(f"    → {rec_preview}")
         
         # Categorize risks by level
         high_risk_clauses = [r for r in risk_assessments if r.get('risk_level') == 'HIGH']
@@ -247,6 +247,11 @@ class LegalDocAI:
             print(f"{YELLOW}{BOLD}>>> MEDIUM RISK CLAUSES ({len(medium_risks)}) <<<{RESET}")
             for item in medium_risks:
                 print_risk_block(item, YELLOW)
+        
+        if low_risks:
+            print(f"{GREEN}{BOLD}>>> LOW RISK CLAUSES ({len(low_risks)}) <<<{RESET}")
+            for item in low_risks:
+                print_risk_block(item, GREEN)
     
 
 
@@ -285,20 +290,10 @@ def main():
     # Parse arguments
     args = parse_arguments()
     
-    # Define files directory
-    FILES_DIR = "files"
-    if not os.path.exists(FILES_DIR):
-        os.makedirs(FILES_DIR)
-    
-    # Resolve document path
+    # Validate document path
     doc_path = args.document
     if not os.path.exists(doc_path):
-        # Check in files directory
-        potential_path = os.path.join(FILES_DIR, doc_path)
-        if os.path.exists(potential_path):
-            doc_path = potential_path
-        else:
-            sys.exit(f"Error: Document not found: {args.document} (checked root and {FILES_DIR}/)")
+        sys.exit(f"Error: Document not found: {args.document}")
     
     # Read the document
     try:

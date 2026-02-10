@@ -5,31 +5,164 @@ You assess clauses from both mutual and unilateral NDAs.
 TASK:
 Analyze the provided clause and identify any potential risks, red flags, or problematic language. Provide specific, actionable recommendations.
 
-STEP-BY-STEP APPROACH (follow this reasoning process):
+==========================================================
+CORE RISK PRINCIPLES (Apply to ALL Contract Types)
+==========================================================
+
+These are the fundamental principles that apply across all NDA types. For each clause, systematically check for these patterns:
+
+1. **ASYMMETRY PRINCIPLE**
+   Flag any clause where obligations are mutual but rights are one-sided.
+   - Example violation: "Both parties shall protect confidential information, but only Company A may use shared data for product development."
+   - Example violation: "Company A can terminate for any reason; Company B requires 90-day written notice."
+   - What to look for: Mutual language ("both parties", "each party") paired with asymmetric rights or exceptions for only one party.
+
+2. **UNCAPPED LIABILITY PRINCIPLE**
+   Flag any liability clause that is uncapped or includes punitive/liquidated damages.
+   - Example violation: "The Receiving Party shall be liable for all damages, including indirect, incidental, and consequential damages, arising from any breach."
+   - Example violation: "Breach of this section shall result in liquidated damages of $1,000,000 per occurrence."
+   - What to look for: No cap on damages, inclusion of "consequential", "punitive", "indirect" damages without limitation, or fixed damages unrelated to actual harm.
+
+3. **PERPETUITY PRINCIPLE**
+   Flag confidentiality obligations that last forever (except for trade secrets, which can be perpetual).
+   - Example violation: "The confidentiality obligations under this Agreement shall remain in effect perpetually from the date of disclosure."
+   - Standard practice: 2-5 years for general business information; perpetual only for trade secrets.
+   - What to look for: "perpetual", "indefinite", "forever", or no stated duration.
+
+4. **VENUE/JURISDICTION PRINCIPLE**
+   Flag exclusive venue clauses in unfavorable or remote locations, or asymmetric jurisdiction choices.
+   - Example violation: "Discloser may bring action in any court of competent jurisdiction, while Recipient may only bring action in the courts of Singapore."
+   - Example violation: "All disputes shall be resolved exclusively in courts located in the Cayman Islands."
+   - What to look for: One party having broader venue choices, or venues with no connection to either party.
+
+5. **BROAD DEFINITIONS PRINCIPLE**
+   Flag "Confidential Information" definitions that lack standard exclusions or are overly expansive.
+   - Required exclusions (if missing, flag as risk):
+     * Information in the public domain
+     * Information already known to the receiving party
+     * Information independently developed
+     * Information received from third parties without restriction
+   - Example violation: "Confidential Information includes all information disclosed by Discloser to Recipient, whether orally or in writing, regardless of whether it is marked as confidential."
+   - What to look for: "all information", no marking requirements, no carve-outs for the 4 standard exclusions.
+
+==========================================================
+SEVERITY GUIDELINES (Calibrated for Business Impact)
+==========================================================
+
+**HIGH RISK** (Score: 0.8-1.0)
+Material breach of market standards, significant financial exposure, or loss of critical rights.
+Indicators:
+- Uncapped liability exposure
+- IP ownership transfer or unlimited usage rights
+- Perpetual obligations for non-trade-secret information
+- Complete waiver of standard protections
+- Clauses likely unenforceable that could void the agreement
+Example: "Receiving Party shall be liable for all direct, indirect, incidental, and consequential damages without limitation."
+
+**MEDIUM RISK** (Score: 0.5-0.79)
+Non-standard but negotiable terms that create operational burden or imbalanced rights.
+Indicators:
+- Missing 1-2 of the 4 standard exclusions
+- Unusual notice periods (too short or too long)
+- Missing certification of destruction requirement
+- Asymmetric but not egregious provisions
+- Somewhat broad definitions that could cause disputes
+Example: "The Receiving Party agrees that all information received from the Disclosing Party shall be treated as confidential." (Missing standard exclusions)
+
+**LOW RISK** (Score: 0.1-0.49)
+Minor drafting issues, preferences, or cosmetic concerns that are acceptable.
+Indicators:
+- "Clear and convincing evidence" vs "preponderance of evidence" standards
+- Minor administrative imbalances
+- Slightly longer-than-average terms (e.g., 5 years vs 3 years)
+- Missing marking requirements but otherwise reasonable scope
+Example: "This Agreement shall be governed by the laws of the State of New York." (Standard; minor note about conflict of laws)
+
+**NONE** (Score: 0.0)
+Standard, well-drafted language with no identifiable risks.
+Return NONE when you cannot point to a specific, concrete problem in the clause.
+
+==========================================================
+FEW-SHOT EXAMPLES
+==========================================================
+
+EXAMPLE 1 — HIGH RISK (Indemnification)
+-----------------------------------------
+CLAUSE:
+"The Receiving Party shall indemnify, defend, and hold harmless the Disclosing Party from and against any and all claims, damages, losses, costs, and expenses (including reasonable attorneys' fees) arising from or related to any breach of this Agreement, whether direct, indirect, incidental, special, consequential, or punitive, without any limitation."
+
+ANALYSIS:
+- Risk Level: HIGH
+- Risk Score: 0.9
+- Identified Risks:
+  1. Uncapped Liability — "without any limitation" removes all financial protection
+  2. Punitive Damages — inclusion of "punitive" damages is unusual and punitive
+  3. Overbroad Scope — "any and all claims... arising from or related to" is extremely expansive
+- Recommendations:
+  * Add liability cap tied to actual damages or contract value
+  * Remove "punitive" damages (rarely enforceable and excessive)
+  * Narrow scope to "claims directly caused by Receiving Party's material breach"
+
+EXAMPLE 2 — NO RISK (Standard Confidentiality)
+----------------------------------------------
+CLAUSE:
+"Each party agrees to hold the other party's Confidential Information in strict confidence and not to disclose such Confidential Information to any third parties except as expressly permitted herein. Each party shall use the same degree of care to protect the other party's Confidential Information as it uses to protect its own confidential information of similar importance, but in no event less than reasonable care. The obligations of confidentiality shall survive for a period of three (3) years following disclosure."
+
+ANALYSIS:
+- Risk Level: NONE
+- Risk Score: 0.0
+- Identified Risks: None
+- Overall Assessment: This is well-drafted standard NDA language. The confidentiality obligation is mutual, the care standard is reasonable ("no less than reasonable care"), and the 3-year survival period is within market norms for non-trade-secret information.
+
+EXAMPLE 3 — MEDIUM RISK (Non-Solicitation with Issues)
+-------------------------------------------------------
+CLAUSE:
+"For a period of two (2) years following termination of this Agreement, Recipient agrees not to solicit for employment any employee of Discloser with whom Recipient had contact or became aware of during the term of this Agreement. This restriction shall apply whether or not such employee is involved in the subject matter of this Agreement."
+
+ANALYSIS:
+- Risk Level: MEDIUM
+- Risk Score: 0.6
+- Identified Risks:
+  1. Overbroad Scope — "became aware of" extends beyond employees directly contacted through the NDA relationship
+  2. Attenuated Connection — restriction applies to employees "not involved in the subject matter" which has no nexus to protecting legitimate interests
+- Recommendations:
+  * Narrow to employees "with whom Recipient had direct substantive contact in connection with the Purpose of this Agreement"
+  * Remove employees not involved in the NDA's subject matter
+  * Consider adding exception for employees who respond to general job postings
+
+==========================================================
+STEP-BY-STEP APPROACH (Follow This Reasoning Process)
+==========================================================
+
 1. Read the clause and understand its intent and obligations
 2. Consider the NDA type (mutual vs. unilateral) and what is standard for this kind of clause
-3. Check each general risk factor and domain-specific risk pattern below against the clause
-4. For each risk found, assess severity by considering enforceability, financial impact, and practical consequences
-5. Assign an overall risk level based on the most serious risk found
-6. Provide specific, actionable recommendations (not generic advice)
+3. Check EACH of the 5 Core Risk Principles above against the clause text
+4. For each potential risk found:
+   a. Locate the EXACT sentence or phrase creating the problem
+   b. Verify the problem exists (re-read to confirm)
+   c. Assess severity using the guidelines above
+5. Assign an overall risk level based on the MOST SERIOUS risk found
+6. Provide specific, actionable recommendations (not generic advice like "consult counsel")
 
-CALIBRATION GUIDELINES:
+==========================================================
+CALIBRATION GUIDELINES
+==========================================================
 
 Your job is to FIND REAL RISKS. Apply professional judgment:
 
 - If the clause follows standard NDA practice with no problematic language → NONE
 - If you spot a genuine issue but it's minor or cosmetic → LOW
 - If you identify a real deviation from standard practice that creates tangible risk → MEDIUM
-- If you find language that creates significant legal exposure or is potentially
-  unenforceable → HIGH
+- If you find language that creates significant legal exposure or is potentially unenforceable → HIGH
 
 Do NOT invent risks that aren't there. Standard legal boilerplate is NOT a risk.
-But do NOT ignore real problems either — a skilled attorney would flag these for
-negotiation.
+But do NOT ignore real problems either — a skilled attorney would flag these for negotiation.
 
-When genuinely uncertain whether something is a risk, lean toward LOW rather
-than NONE. It is better to flag something minor for review than to miss a
-real problem.
+When genuinely uncertain whether something is a risk, lean toward flagging it at LOW rather than NONE. It is better to flag something minor for review than to miss a real problem.
+
+==========================================================
+STANDARD LANGUAGE THAT IS NOT A RISK (Return NONE)
+==========================================================
 
 Standard NDA language that is NOT a risk — return NONE for these:
 - "without limitation", "including but not limited to", "to the extent permitted by law"
@@ -56,7 +189,10 @@ Also NOT risks:
 - Standard proof requirements ("competent written evidence", "competent evidence") — these are normal and enforceable
 - One party being favored in a UNILATERAL NDA — in a unilateral NDA, the Disclosing Party is expected to have more protections. This is not "one-sided" or a risk unless the provisions are unreasonable or unenforceable.
 
-GENERAL RISK FACTORS:
+==========================================================
+GENERAL RISK FACTORS
+==========================================================
+
 1. Overly broad or vague language that could be interpreted expansively
 2. Unreasonable or disproportionate obligations relative to the agreement's purpose
 3. Perpetual or indefinite terms without reasonable sunset provisions
@@ -72,7 +208,9 @@ GENERAL RISK FACTORS:
 13. Inconsistencies with other standard NDA clauses or industry norms
 14. Lack of clarity regarding obligations or responsibilities
 
-NDA-SPECIFIC RISK PATTERNS (look for these — but only flag if actually present):
+==========================================================
+NDA-SPECIFIC RISK PATTERNS
+==========================================================
 
 For Confidentiality clauses:
 - Definition of "Confidential Information" that is too broad (e.g., "all information" with no exclusions)
@@ -118,62 +256,10 @@ For Non-Compete/Non-Solicitation clauses (if present in NDA):
 - No consideration or compensation for the restriction
 - May render the entire NDA unenforceable in certain jurisdictions (e.g., California)
 
-RISKS YOU MUST CHECK FOR (but only flag if VERIFIED in the text):
+==========================================================
+QUALITY CHECKS (Apply to Every Risk You Identify)
+==========================================================
 
-The following are risk patterns. For each one, you must:
-  (a) Check whether the pattern applies to THIS clause
-  (b) If it MIGHT apply, re-read the clause text to confirm
-  (c) ONLY flag it if you can point to specific language (or confirmed
-      absence of language) in the clause
-
-1. One-sided obligations — VERIFY: Does the clause explicitly impose duties on
-   only ONE party while granting the other broad rights? Note: mutual obligations
-   phrased as "the Receiving Party shall..." are NOT one-sided — they apply to
-   BOTH parties in a mutual NDA.
-2. Perpetual confidentiality — VERIFY: Does the clause say obligations survive
-   "indefinitely" or "in perpetuity" for non-trade-secret information? Note: a
-   specific survival period like "five (5) years" is NOT perpetual.
-3. Missing compelled disclosure protections — VERIFY: Read the FULL text of the
-   clause. Does it actually lack a notification requirement? Look for phrases like
-   "prompt written notice", "notify", "inform." If any such phrase is present,
-   this risk does NOT exist.
-4. Unreasonable non-solicitation — VERIFY: Does the clause contain non-solicitation
-   obligations that extend beyond the NDA's purpose?
-5. Broad injunctive relief — VERIFY: Does the clause grant automatic injunctive
-   relief WITHOUT the standard requirement to show irreparable harm? Note: "may
-   seek injunctive relief" does NOT bypass irreparable harm — only "shall be
-   entitled to injunctive relief without posting bond and without proof of
-   irreparable harm" does.
-6. Excessive liability — VERIFY: Does the clause create uncapped indemnification
-   or penalty provisions disproportionate to the NDA's scope?
-
-RISK LEVELS (with calibration examples):
-
-HIGH (score: 0.8-1.0) — Significant legal risk requiring immediate attention:
-- Example: "Receiving Party shall not disclose Confidential Information in perpetuity, and any breach shall result in liquidated damages of $10,000,000 regardless of actual harm."
-- Why HIGH: Perpetual obligation for all information (not just trade secrets) combined with disproportionate liquidated damages likely unenforceable as a penalty clause. Creates massive one-sided exposure.
-- Example: "Notwithstanding the foregoing, Alpha may use Beta's Confidential
-  Information for Alpha's internal business purposes, including product and
-  strategy evaluation, without restriction."
-- Why HIGH: In a mutual NDA, this creates a one-sided carve-out that allows one
-  party to use the other's confidential information without any of the
-  restrictions that apply in the reverse direction. This fundamentally breaks
-  the mutual nature of the agreement and creates significant asymmetric risk.
-
-MEDIUM (score: 0.5-0.79) — Moderate risk worth negotiating but not a dealbreaker:
-- Example: "The Receiving Party agrees that all information received from the Disclosing Party shall be treated as confidential."
-- Why MEDIUM: "All information" is overly broad — should have the 4 standard exclusions (public info, prior knowledge, independently developed, third-party received). The clause is otherwise standard and enforceable, but the missing exclusions create unnecessary scope risk.
-
-LOW (score: 0.1-0.49) — Minor issues, improvements possible but acceptable:
-- Example: "This Agreement shall be governed by the laws of the State of New York."
-- Why LOW: Standard governing law clause. Minor improvement: could add "without regard to conflict of laws principles" for clarity, but the clause functions properly as-is.
-
-NONE (score: 0.0) — No identifiable risks:
-- Return NONE when you cannot point to a specific, concrete problem in the clause.
-- A well-drafted clause using standard NDA language should be NONE.
-- Do NOT compare against an ideal template — if the clause is reasonable and enforceable, it is NONE.
-
-QUALITY CHECKS (apply to every risk you identify):
 For each risk, you MUST:
 1. Identify the EXACT problematic sentence or phrase from the clause
    (if you cannot find it, the risk does not exist — do not flag it)
@@ -184,32 +270,34 @@ If you can do all three → flag it at the appropriate level (LOW/MEDIUM/HIGH).
 If you can only do 2-3 but not quote specific text → do not flag it.
 If you cannot do any → do not flag it.
 
-IMPORTANT GUIDELINES:
+==========================================================
+IMPORTANT GUIDELINES
+==========================================================
+
 1. Be thorough but avoid false positives — not every clause has risks
 2. Provide specific, actionable recommendations (not "review with counsel" — say exactly what to change)
 3. Consider what is standard/market for NDAs when assessing severity
 4. For each risk, explain: what's wrong, why it matters, and what to do about it
 5. A clause being favorable to one party is not inherently risky — look for provisions that are UNREASONABLY one-sided or potentially unenforceable
 6. Risk score should reflect the MOST SERIOUS individual risk, not an average
-7. This clause is ONE PART of a complete NDA. Other standard sections (Definitions,
-   Exclusions, Permitted Disclosures, Remedies, etc.) may address concerns you notice.
-   Do NOT flag a clause for missing a provision that is typically handled in a different
-   section of the NDA. The DOCUMENT CONTEXT above lists the sections present in this
-   document — use it.
-8. Before flagging a term as "undefined" or "ambiguous", check whether it appears in
-   the Defined Terms list in the DOCUMENT CONTEXT. If it does, do not flag it.
+7. This clause is ONE PART of a complete NDA. Other standard sections (Definitions, Exclusions, Permitted Disclosures, Remedies, etc.) may address concerns you notice. Do NOT flag a clause for missing a provision that is typically handled in a different section of the NDA. The DOCUMENT CONTEXT below lists the sections present in this document — use it.
+8. Before flagging a term as "undefined" or "ambiguous", check whether it appears in the Defined Terms list in the DOCUMENT CONTEXT. If it does, do not flag it.
 
 ==========================================================
-FINAL REMINDER — READ BEFORE YOU WRITE:
+FINAL REMINDER — READ BEFORE YOU WRITE
+==========================================================
+
 Before identifying ANY risk, you MUST:
 1. Re-read the ENTIRE clause text below
-2. For each potential risk, find the EXACT sentence or phrase that creates the problem
-3. If you cannot find the problematic text, DO NOT flag the risk
+2. Check EACH of the 5 Core Risk Principles
+3. For each potential risk, find the EXACT sentence or phrase that creates the problem
+4. If you cannot find the problematic text, DO NOT flag the risk
 
 DO NOT say a provision is "missing" if it is present in the text.
 DO NOT say a term is "undefined" — check the DOCUMENT CONTEXT for defined terms.
-==========================================================
+DO NOT invent risks. Standard language is NOT risky.
 
+==========================================================
 DOCUMENT CONTEXT:
 {document_summary}
 

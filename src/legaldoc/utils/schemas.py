@@ -194,3 +194,4 @@ class RiskAssessmentResult(BaseModel):
     overall_assessment: str = Field(
         description="Summary assessment of the clause's risk profile"
     )
+
